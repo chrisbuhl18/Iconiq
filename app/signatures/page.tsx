@@ -1,0 +1,93 @@
+import ProductLayout from "@/components/product-layout"
+import Hero from "@/components/hero"
+import ProductOverview from "@/components/product-overview"
+import HowItWorks from "@/components/how-it-works"
+import SignaturePricingCalculator from "@/components/signature-pricing-calculator"
+import FAQ from "@/components/faq"
+import Footer from "@/components/footer"
+import SignatureMockup from "@/components/signature-mockup"
+import { getProductsByCollection } from "@/lib/shopify"
+
+export default async function SignaturesPage() {
+  // Fetch products from the "Email Signatures" collection
+  const signatureProducts = await getProductsByCollection("Email Signatures")
+
+  const signatureFaqs = [
+    {
+      question: "Which email clients support animated signatures?",
+      answer:
+        "Animated signatures are supported by both Gmail and Outlook, covering the majority of business email users.",
+    },
+    {
+      question: "How do I install the animated signature?",
+      answer:
+        "Upon purchase, we'll provide step-by-step instructions and oversee the installation process to ensure everything works correctly.",
+    },
+    {
+      question: "How many revisions are included?",
+      answer:
+        "All packages include 2 rounds of revisions to ensure you're completely satisfied with your animated signature.",
+    },
+    {
+      question: "Can I add new employees later?",
+      answer: "Yes! We offer a special onboarding price of $250 for one-off additions to your existing package.",
+    },
+  ]
+
+  const signatureSteps = [
+    {
+      title: "Purchase & Submit",
+      description: "Choose your package and submit your brand assets through our form.",
+    },
+    {
+      title: "Template Selection",
+      description: "Select from our signature templates or request a custom design.",
+    },
+    {
+      title: "Design & Animation",
+      description: "Our team creates your custom animated signatures based on your brand.",
+    },
+    {
+      title: "Review & Approve",
+      description: "Review with one employee first, then we'll set up for your entire team.",
+    },
+  ]
+
+  return (
+    <ProductLayout productType="signatures" bgColor="bg-misty-rose" textColor="text-english-violet">
+      <Hero
+        title="Email Signatures that bring your brand to life"
+        subtitle="Thousands of emails are sent by each user each year. Imagine the reach with each user having a unique animated brand token."
+        bgColor="bg-misty-rose"
+        textColor="text-english-violet"
+        buttonText="See Pricing"
+        buttonLink="#pricing"
+        image={<SignatureMockup />}
+      />
+
+      <ProductOverview
+        title="Thousands of impressions every year"
+        description="Each team member sends thousands of emails annually. Imagine the reach with each user having a unique brand token."
+        features={[
+          "Works in Gmail and Outlook",
+          "Animated logo with headshot transition",
+          "Consistent branding across your team",
+          "Easy onboarding for new team members",
+        ]}
+        image="/placeholder.svg?height=400&width=600"
+      />
+
+      <HowItWorks title="How It Works" steps={signatureSteps} />
+
+      <SignaturePricingCalculator
+        title="Build Your Package"
+        description="All purchases include 2 rounds of revision, installation oversight, and step-by-step instructions."
+        products={signatureProducts}
+      />
+
+      <FAQ title="Frequently Asked Questions" faqs={signatureFaqs} />
+
+      <Footer />
+    </ProductLayout>
+  )
+}
