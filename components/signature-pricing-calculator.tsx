@@ -550,7 +550,9 @@ export default function SignaturePricingCalculator({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* User Count */}
               <div className="bg-seasalt p-6 rounded-xl">
-                <h3 className="text-2xl font-bold text-english-violet mb-6 text-center md:text-left">Select User Count</h3>
+                <h3 className="text-2xl font-bold text-english-violet mb-6 text-center md:text-left">
+                  Select User Count
+                </h3>
                 <div className="rounded-xl border p-6 bg-white shadow-md">
                   <div className="flex flex-col">
                     <div className="mb-4">

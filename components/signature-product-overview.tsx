@@ -18,8 +18,8 @@ export default function SignatureProductOverview({
     <section id="overview" className="py-20 bg-white">
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row items-center gap-12">
-          {/* Mockup - First in DOM for desktop */}
-          <div className="flex-1 md:block">
+          {/* Mockup - First in DOM for desktop, but second on mobile */}
+          <div className="flex-1 md:block order-2 md:order-1">
             <div className="bg-white rounded-lg shadow-lg p-6">
               {/* Email app header */}
               <div className="flex items-center justify-between mb-6">
@@ -109,8 +109,8 @@ export default function SignatureProductOverview({
             </div>
           </div>
 
-          {/* Text content - Second in DOM for desktop */}
-          <div className="flex-1 mb-8 md:mb-0">
+          {/* Text content - Second in DOM for desktop, but first on mobile */}
+          <div className="flex-1 mb-8 md:mb-0 order-1 md:order-2">
             <h2 className="heading-md text-english-violet mb-6">{title}</h2>
             <p className="text-lg mb-8 text-gray-700">{description}</p>
             <div className="space-y-4">
