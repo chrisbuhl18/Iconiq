@@ -1,14 +1,17 @@
 import { NextResponse } from "next/server"
 
-// Get environment variables - using server-side variables without NEXT_PUBLIC_ prefix
-const SHOPIFY_STOREFRONT_ACCESS_TOKEN = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN
-const SHOPIFY_API_ENDPOINT = process.env.SHOPIFY_API_ENDPOINT
-
 export async function POST(request: Request) {
   try {
+    // Get environment variables - using server-side variables without NEXT_PUBLIC_prefix
+    const SHOPIFY_STOREFRONT_ACCESS_TOKEN = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN
+
+    // Use the provided endpoint
+    const SHOPIFY_API_ENDPOINT = "https://golumio.myshopify.com/api/2023-10/graphql.json"
+
     // Validate environment variables
-    if (!SHOPIFY_STOREFRONT_ACCESS_TOKEN || !SHOPIFY_API_ENDPOINT) {
-      return NextResponse.json({ error: "Shopify configuration is missing" }, { status: 500 })
+    if (!SHOPIFY_STOREFRONT_ACCESS_TOKEN) {
+      console.error("Shopify access token is missing. Check your environment variables.")
+      return NextResponse.json({ error: "Shopify access token is missing" }, { status: 500 })
     }
 
     // Get the cart details from the request body
@@ -55,18 +58,36 @@ export async function POST(request: Request) {
       }),
     })
 
+    // Check if response is OK
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error("Error response from Shopify API:", errorText)
+      return NextResponse.json(
+        { error: `Shopify API error: ${response.status} ${response.statusText}` },
+        { status: response.status },
+      )
+    }
+
     // Parse the response
     const data = await response.json()
 
     // Check for errors
     if (data.errors) {
       console.error("Shopify cart creation errors:", data.errors)
-      return NextResponse.json({ error: data.errors[0].message }, { status: 400 })
+      return NextResponse.json({ error: "Shopify GraphQL errors", details: data.errors }, { status: 400 })
     }
 
     if (data.data?.cartCreate?.userErrors?.length > 0) {
       console.error("Shopify cart user errors:", data.data.cartCreate.userErrors)
-      return NextResponse.json({ error: data.data.cartCreate.userErrors[0].message }, { status: 400 })
+      return NextResponse.json(
+        { error: "Cart creation errors", details: data.data.cartCreate.userErrors },
+        { status: 400 },
+      )
+    }
+
+    // Validate cart data
+    if (!data.data?.cartCreate?.cart?.id || !data.data?.cartCreate?.cart?.checkoutUrl) {
+      return NextResponse.json({ error: "Invalid cart response from Shopify" }, { status: 500 })
     }
 
     // Return the cart data
@@ -76,6 +97,9 @@ export async function POST(request: Request) {
     })
   } catch (error) {
     console.error("Shopify cart API error:", error)
-    return NextResponse.json({ error: "An error occurred while creating the cart" }, { status: 500 })
+    return NextResponse.json(
+      { error: "An error occurred while creating the cart", details: String(error) },
+      { status: 500 },
+    )
   }
 }

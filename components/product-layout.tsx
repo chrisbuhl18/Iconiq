@@ -9,16 +9,23 @@ interface ProductLayoutProps {
   productType: "avatars" | "signatures"
   bgColor: string
   textColor: string
+  logoVariant?: "pale" | "dark" | "rose" // Add this line
 }
 
-export default function ProductLayout({ children, productType, bgColor, textColor }: ProductLayoutProps) {
+export default function ProductLayout({
+  children,
+  productType,
+  bgColor,
+  textColor,
+  logoVariant = "pale", // Add this line with default value
+}: ProductLayoutProps) {
   return (
     <div className={cn("min-h-screen", bgColor === "bg-periwinkle" ? "bg-white" : "bg-english-violet/5")}>
       <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center">
-              <Logo size="medium" />
+              <Logo size="medium" variant={logoVariant} />
             </Link>
 
             <div className="hidden md:flex items-center space-x-2 bg-gray-100 rounded-full p-1">

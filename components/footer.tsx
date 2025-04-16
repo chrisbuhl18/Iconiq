@@ -1,5 +1,5 @@
 import Link from "next/link"
-import Logo from "@/components/logo"
+import Image from "next/image"
 
 export default function Footer() {
   return (
@@ -7,9 +7,8 @@ export default function Footer() {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="col-span-1 md:col-span-2">
-            <div className="flex items-center space-x-2 mb-4">
-              <Logo className="w-10 h-10 bg-white rounded-full" />
-              <span className="font-bold text-xl font-heading">Lumio</span>
+            <div className="mb-6">
+              <Image src="/logos/lumio-logo-white.png" alt="Lumio" width={160} height={53} className="object-contain" />
             </div>
             <p className="text-gray-300 mb-6 max-w-md">
               Bring energy and the highest form of brand engagement into your emails with animated elements that make

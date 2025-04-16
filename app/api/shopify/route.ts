@@ -1,21 +1,29 @@
 import { NextResponse } from "next/server"
 
-// Get environment variables - using server-side variables without NEXT_PUBLIC_ prefix
-const SHOPIFY_STOREFRONT_ACCESS_TOKEN = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN
-const SHOPIFY_API_ENDPOINT = process.env.SHOPIFY_API_ENDPOINT
-
 export async function POST(request: Request) {
   try {
+    // Get environment variables - using server-side variables without NEXT_PUBLIC_prefix
+    const SHOPIFY_STOREFRONT_ACCESS_TOKEN = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN
+
+    // Use the provided endpoint
+    const SHOPIFY_API_ENDPOINT = "https://golumio.myshopify.com/api/2023-10/graphql.json"
+
+    // Log environment variable status (without revealing values)
+    console.log("Environment variables status:", {
+      hasStorefrontToken: !!SHOPIFY_STOREFRONT_ACCESS_TOKEN,
+      apiEndpoint: SHOPIFY_API_ENDPOINT,
+    })
+
     // Validate environment variables
-    if (!SHOPIFY_STOREFRONT_ACCESS_TOKEN || !SHOPIFY_API_ENDPOINT) {
-      console.error("Shopify configuration is missing. Check your environment variables.")
-      return NextResponse.json({ error: "Shopify configuration is missing" }, { status: 500 })
+    if (!SHOPIFY_STOREFRONT_ACCESS_TOKEN) {
+      console.error("Shopify access token is missing. Check your environment variables.")
+      return NextResponse.json({ error: "Shopify access token is missing" }, { status: 500 })
     }
 
     // Get the GraphQL query and variables from the request body
     const { query, variables } = await request.json()
 
-    console.log("Making request to Shopify API:", SHOPIFY_API_ENDPOINT)
+    console.log("Making request to Shopify API")
     console.log("Query:", query)
     console.log("Variables:", variables)
 
@@ -36,7 +44,10 @@ export async function POST(request: Request) {
     if (!response.ok) {
       const errorText = await response.text()
       console.error("Error response from Shopify API:", errorText)
-      return NextResponse.json({ error: `Shopify API error: ${response.status}` }, { status: response.status })
+      return NextResponse.json(
+        { error: `Shopify API error: ${response.status} ${response.statusText}` },
+        { status: response.status },
+      )
     }
 
     // Try to parse the response as JSON
@@ -46,18 +57,18 @@ export async function POST(request: Request) {
       // Check for GraphQL errors
       if (data.errors) {
         console.error("Shopify GraphQL errors:", data.errors)
-        return NextResponse.json({ error: data.errors[0].message }, { status: 400 })
+        return NextResponse.json({ error: "Shopify GraphQL errors", details: data.errors }, { status: 400 })
       }
 
       // Return the data
       return NextResponse.json(data)
     } catch (error) {
       console.error("Error parsing Shopify response as JSON:", error)
-      return NextResponse.json({ error: "Invalid JSON response from Shopify API" }, { status: 500 })
+      return NextResponse.json({ error: "Error parsing Shopify response as JSON" }, { status: 500 })
     }
   } catch (error) {
     console.error("Shopify API error:", error)
-    return NextResponse.json({ error: "An error occurred while fetching data from Shopify" }, { status: 500 })
+    return NextResponse.json({ error: "Shopify API error", details: String(error) }, { status: 500 })
   }
 }
 
@@ -66,7 +77,45 @@ export async function POST(request: Request) {
  */
 export async function getAnimationPackages() {
   try {
-    const response = await fetch("/api/shopify")
+    const response = await fetch("/api/shopify", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        query: `
+          query GetProducts {
+            products(first: 10) {
+              edges {
+                node {
+                  id
+                  title
+                  description
+                  handle
+                  variants(first: 10) {
+                    edges {
+                      node {
+                        id
+                        title
+                        price {
+                          amount
+                          currencyCode
+                        }
+                        availableForSale
+                        selectedOptions {
+                          name
+                          value
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        `,
+      }),
+    })
 
     if (!response.ok) {
       const errorText = await response.text()
@@ -75,23 +124,21 @@ export async function getAnimationPackages() {
     }
 
     const data = await response.json()
-    console.log("API response data:", data)
 
-    // Check if we got fallback data signal
-    if (data.fallbackData) {
-      console.log("Using fallback data as signaled by API")
-      return null
+    if (data.error) {
+      console.error("API returned an error:", data.error)
+      throw new Error(data.error)
     }
 
-    if (!data.products) {
-      console.error("No products in API response:", data)
-      return null
+    if (!data.data || !data.data.products || !data.data.products.edges) {
+      console.error("Unexpected API response structure:", data)
+      throw new Error("Unexpected API response structure")
     }
 
-    return data.products
+    return data.data.products.edges.map((edge: any) => edge.node)
   } catch (error) {
     console.error("Error fetching animation packages:", error)
-    return null
+    throw error
   }
 }
 
@@ -100,7 +147,7 @@ export async function getAnimationPackages() {
  */
 export async function createCart(variantId: string, quantity = 1, customAttributes: any[] = []) {
   try {
-    const response = await fetch("/api/shopify", {
+    const response = await fetch("/api/shopify/cart", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -120,15 +167,21 @@ export async function createCart(variantId: string, quantity = 1, customAttribut
 
     const data = await response.json()
 
-    if (!data.cart) {
-      console.error("No cart in API response:", data)
-      return null
+    if (data.error) {
+      throw new Error(data.error)
     }
 
-    return data.cart
+    if (!data.cartId || !data.checkoutUrl) {
+      throw new Error("Invalid cart response")
+    }
+
+    return {
+      cartId: data.cartId,
+      checkoutUrl: data.checkoutUrl,
+    }
   } catch (error) {
     console.error("Error creating cart:", error)
-    return null
+    throw error
   }
 }
 
@@ -140,8 +193,7 @@ export function formatProductsForCalculator(products: any[]) {
     console.log("Formatting products:", products)
 
     if (!products || products.length === 0) {
-      console.log("No products to format, returning null")
-      return null
+      throw new Error("No products to format")
     }
 
     // Validate product structure
@@ -158,7 +210,6 @@ export function formatProductsForCalculator(products: any[]) {
     }
 
     // Map products to animation packages based on their titles
-    // Assuming products are named like "Starter Animation Package", "Essential Animation Package", etc.
     const animationPackages = products.map((product) => {
       try {
         // Get the base variant (user count = 1 or first variant if user count not specified)
@@ -233,8 +284,7 @@ export function findVariantId(productMap: any, packageName: string, userCount: n
   try {
     const product = productMap[packageName]
     if (!product) {
-      console.error(`Product not found for package name: ${packageName}`)
-      return null
+      throw new Error(`Product not found for package name: ${packageName}`)
     }
 
     // For user counts > 50, find the custom quote variant
@@ -245,7 +295,11 @@ export function findVariantId(productMap: any, packageName: string, userCount: n
           edge.node.selectedOptions.some((option: any) => option.value.toLowerCase().includes("custom")),
       )
 
-      return customVariant ? customVariant.node.id : null
+      if (!customVariant) {
+        throw new Error("Custom variant not found")
+      }
+
+      return customVariant.node.id
     }
 
     // Find the variant matching the user count
@@ -255,9 +309,13 @@ export function findVariantId(productMap: any, packageName: string, userCount: n
       ),
     )
 
-    return variant ? variant.node.id : null
+    if (!variant) {
+      throw new Error(`Variant not found for user count: ${userCount}`)
+    }
+
+    return variant.node.id
   } catch (error) {
     console.error("Error finding variant ID:", error)
-    return null
+    throw error
   }
 }

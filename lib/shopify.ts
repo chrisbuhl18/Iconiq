@@ -11,11 +11,16 @@ export interface ShopifyProduct {
   handle: string
 }
 
+// Update the ShopifyVariant interface to include selectedOptions
 export interface ShopifyVariant {
   id: string
   title: string
   price: string
   available: boolean
+  selectedOptions?: Array<{
+    name: string
+    value: string
+  }>
 }
 
 export interface CartCreateResponse {
@@ -26,39 +31,48 @@ export interface CartCreateResponse {
 /**
  * Fetches products from a specific collection by title
  */
-export async function getProductsByCollection(collectionTitle: string): Promise<ShopifyProduct[] | null> {
+export async function getProductsByCollection(collectionTitle: string): Promise<ShopifyProduct[]> {
   try {
     console.log(`Fetching products from collection: ${collectionTitle}`)
 
-    const response = await fetch("/api/shopify", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        query: `
-          query GetProductsByCollection($title: String!) {
-            collections(first: 1, query: $title) {
-              edges {
-                node {
-                  title
-                  products(first: 10) {
-                    edges {
-                      node {
-                        id
-                        title
-                        description
-                        handle
-                        variants(first: 10) {
-                          edges {
-                            node {
-                              id
-                              title
-                              priceV2 {
-                                amount
-                                currencyCode
+    // Check if we're in a build/server environment without a proper URL
+    if (typeof window === "undefined") {
+      // We're in a server environment, but we can't make API calls during build
+      // Return empty products array to avoid build errors
+      console.log("Server environment detected, returning empty products array for build time")
+      return []
+    } else {
+      // We're in a browser environment, use relative URL
+      const response = await fetch("/api/shopify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query: `
+            query GetProductsByCollection($title: String!) {
+              collections(first: 1, query: $title) {
+                edges {
+                  node {
+                    title
+                    products(first: 10) {
+                      edges {
+                        node {
+                          id
+                          title
+                          description
+                          handle
+                          variants(first: 10) {
+                            edges {
+                              node {
+                                id
+                                title
+                                priceV2 {
+                                  amount
+                                  currencyCode
+                                }
+                                availableForSale
                               }
-                              availableForSale
                             }
                           }
                         }
@@ -68,66 +82,73 @@ export async function getProductsByCollection(collectionTitle: string): Promise<
                 }
               }
             }
-          }
-        `,
-        variables: {
-          title: collectionTitle,
-        },
-      }),
-    })
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error(`API error (${response.status}):`, errorText)
-      throw new Error(`API error: ${response.status}`)
-    }
-
-    const data = await response.json()
-    console.log("API response:", data)
-
-    if (
-      !data.data ||
-      !data.data.collections ||
-      !data.data.collections.edges ||
-      data.data.collections.edges.length === 0
-    ) {
-      console.error("Collection not found or unexpected API response structure:", data)
-      return null
-    }
-
-    const collection = data.data.collections.edges[0].node
-    console.log(`Found collection: ${collection.title}`)
-
-    if (!collection.products || !collection.products.edges || collection.products.edges.length === 0) {
-      console.error("No products found in collection:", collection.title)
-      return null
-    }
-
-    // Transform the response to a simpler format
-    const products = collection.products.edges.map((edge: any) => {
-      const product = edge.node
-      return {
-        id: product.id,
-        title: product.title,
-        description: product.description,
-        handle: product.handle,
-        variants: product.variants.edges.map((variantEdge: any) => {
-          const variant = variantEdge.node
-          return {
-            id: variant.id,
-            title: variant.title,
-            price: variant.priceV2.amount,
-            available: variant.availableForSale,
-          }
+          `,
+          variables: {
+            title: collectionTitle,
+          },
         }),
-      }
-    })
+      })
 
-    console.log(`Found ${products.length} products in collection ${collection.title}`)
-    return products
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error(`API error (${response.status}):`, errorText)
+        throw new Error(`API error: ${response.status}`)
+      }
+
+      const data = await response.json()
+      console.log("API response:", data)
+
+      if (data.error) {
+        throw new Error(`API error: ${data.error}`)
+      }
+
+      if (
+        !data.data ||
+        !data.data.collections ||
+        !data.data.collections.edges ||
+        data.data.collections.edges.length === 0
+      ) {
+        throw new Error("Collection not found or unexpected API response structure")
+      }
+
+      const collection = data.data.collections.edges[0].node
+      console.log(`Found collection: ${collection.title}`)
+
+      if (!collection.products || !collection.products.edges || collection.products.edges.length === 0) {
+        throw new Error(`No products found in collection: ${collection.title}`)
+      }
+
+      // Transform the response to a simpler format
+      const products = collection.products.edges.map((edge: any) => {
+        const product = edge.node
+        return {
+          id: product.id,
+          title: product.title,
+          description: product.description,
+          handle: product.handle,
+          variants: product.variants.edges.map((variantEdge: any) => {
+            const variant = variantEdge.node
+            return {
+              id: variant.id,
+              title: variant.title,
+              price: variant.priceV2.amount,
+              available: variant.availableForSale,
+            }
+          }),
+        }
+      })
+
+      console.log(`Found ${products.length} products in collection ${collection.title}`)
+      return products
+    }
   } catch (error) {
     console.error("Error fetching products from collection:", error)
-    return null
+    // Return empty array instead of throwing during build
+    if (typeof window === "undefined") {
+      console.log("Returning empty products array due to error during build")
+      return []
+    }
+    throw error
   }
 }
 
@@ -138,7 +159,7 @@ export async function createCart(
   variantId: string,
   quantity = 1,
   customAttributes: Array<{ key: string; value: string }> = [],
-): Promise<CartCreateResponse | null> {
+): Promise<CartCreateResponse> {
   try {
     const response = await fetch("/api/shopify/cart", {
       method: "POST",
@@ -153,13 +174,25 @@ export async function createCart(
     })
 
     if (!response.ok) {
-      throw new Error(`API error: ${response.status}`)
+      const errorData = await response.json().catch(() => null)
+      const errorMessage = errorData?.error || `API error: ${response.status}`
+      throw new Error(errorMessage)
     }
 
-    return await response.json()
+    const data = await response.json()
+
+    if (data.error) {
+      throw new Error(data.error)
+    }
+
+    if (!data.cartId || !data.checkoutUrl) {
+      throw new Error("Invalid cart response")
+    }
+
+    return data
   } catch (error) {
     console.error("Error creating cart:", error)
-    return null
+    throw error
   }
 }
 
@@ -168,7 +201,45 @@ export async function createCart(
  */
 export async function getAnimationPackages() {
   try {
-    const response = await fetch("/api/shopify")
+    const response = await fetch("/api/shopify", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        query: `
+          query GetProducts {
+            products(first: 10) {
+              edges {
+                node {
+                  id
+                  title
+                  description
+                  handle
+                  variants(first: 10) {
+                    edges {
+                      node {
+                        id
+                        title
+                        price {
+                          amount
+                          currencyCode
+                        }
+                        availableForSale
+                        selectedOptions {
+                          name
+                          value
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        `,
+      }),
+    })
 
     if (!response.ok) {
       const errorText = await response.text()
@@ -177,23 +248,19 @@ export async function getAnimationPackages() {
     }
 
     const data = await response.json()
-    console.log("API response data:", data)
 
-    // Check if we got fallback data signal
-    if (data.fallbackData) {
-      console.log("Using fallback data as signaled by API")
-      return null
+    if (data.error) {
+      throw new Error(data.error)
     }
 
-    if (!data.products) {
-      console.error("No products in API response:", data)
-      return null
+    if (!data.data || !data.data.products || !data.data.products.edges) {
+      throw new Error("Unexpected API response structure")
     }
 
-    return data.products
+    return data.data.products.edges.map((edge: any) => edge.node)
   } catch (error) {
     console.error("Error fetching animation packages:", error)
-    return null
+    throw error
   }
 }
 
@@ -205,8 +272,7 @@ export function formatProductsForCalculator(products: any[]) {
     console.log("Formatting products:", products)
 
     if (!products || products.length === 0) {
-      console.log("No products to format, returning null")
-      return null
+      throw new Error("No products to format")
     }
 
     // Validate product structure
@@ -223,7 +289,6 @@ export function formatProductsForCalculator(products: any[]) {
     }
 
     // Map products to animation packages based on their titles
-    // Assuming products are named like "Starter Animation Package", "Essential Animation Package", etc.
     const animationPackages = products.map((product) => {
       try {
         // Get the base variant (user count = 1 or first variant if user count not specified)
@@ -298,8 +363,7 @@ export function findVariantId(productMap: any, packageName: string, userCount: n
   try {
     const product = productMap[packageName]
     if (!product) {
-      console.error(`Product not found for package name: ${packageName}`)
-      return null
+      throw new Error(`Product not found for package name: ${packageName}`)
     }
 
     // For user counts > 50, find the custom quote variant
@@ -310,7 +374,11 @@ export function findVariantId(productMap: any, packageName: string, userCount: n
           edge.node.selectedOptions.some((option: any) => option.value.toLowerCase().includes("custom")),
       )
 
-      return customVariant ? customVariant.node.id : null
+      if (!customVariant) {
+        throw new Error("Custom variant not found")
+      }
+
+      return customVariant.node.id
     }
 
     // Find the variant matching the user count
@@ -320,9 +388,13 @@ export function findVariantId(productMap: any, packageName: string, userCount: n
       ),
     )
 
-    return variant ? variant.node.id : null
+    if (!variant) {
+      throw new Error(`Variant not found for user count: ${userCount}`)
+    }
+
+    return variant.node.id
   } catch (error) {
     console.error("Error finding variant ID:", error)
-    return null
+    throw error
   }
 }

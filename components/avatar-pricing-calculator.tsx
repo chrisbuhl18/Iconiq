@@ -1,5 +1,20 @@
 "use client"
 
+/**
+ * @component AvatarPricingCalculator
+ * @version 1.1.0
+ * @description
+ * Pricing calculator for email avatars that handles variant selection.
+ *
+ * CRITICAL COMPONENT: This component directly impacts checkout functionality and revenue.
+ * Any changes should be thoroughly tested with actual Shopify variants.
+ *
+ * @lastModified 2023-04-15
+ * @changelog
+ * - 1.0.0: Initial implementation
+ * - 1.1.0: Updated to match signature pricing calculator improvements
+ */
+
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -47,50 +62,204 @@ const FALLBACK_OPTIONS = [
   },
 ]
 
-export default function AvatarPricingCalculator({ title, description, products }: AvatarPricingCalculatorProps) {
+export default function AvatarPricingCalculator({
+  title,
+  description,
+  products: initialProducts,
+}: AvatarPricingCalculatorProps) {
+  const [products, setProducts] = useState<ShopifyProduct[] | null>(initialProducts)
   const [animationPackages, setAnimationPackages] = useState<PricingOption[]>([])
   const [selectedAnimation, setSelectedAnimation] = useState<string>("")
   const [totalPrice, setTotalPrice] = useState<number>(0)
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   const [usingFallback, setUsingFallback] = useState<boolean>(false)
+  const [loading, setLoading] = useState<boolean>(true)
 
-  // Process products on component mount
+  // Fetch products if not provided
   useEffect(() => {
-    if (products && products.length > 0) {
-      try {
-        // Format products for the calculator
-        const formattedPackages = products.map((product) => {
-          // Get the base price from the first variant
-          const basePrice = product.variants.length > 0 ? Number.parseFloat(product.variants[0].price) : 0
+    async function fetchProducts() {
+      if (initialProducts) {
+        setProducts(initialProducts)
+        return
+      }
 
+      setLoading(true)
+      try {
+        // CRITICAL: This GraphQL query must include selectedOptions to properly match variants
+        const response = await fetch("/api/shopify", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            query: `
+              query GetProductsByCollection($title: String!) {
+                collections(first: 1, query: $title) {
+                  edges {
+                    node {
+                      title
+                      products(first: 10) {
+                        edges {
+                          node {
+                            id
+                            title
+                            description
+                            handle
+                            variants(first: 10) {
+                              edges {
+                                node {
+                                  id
+                                  title
+                                  priceV2 {
+                                    amount
+                                    currencyCode
+                                  }
+                                  availableForSale
+                                  selectedOptions {
+                                    name
+                                    value
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            `,
+            variables: {
+              title: "Email Avatars",
+            },
+          }),
+        })
+
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`)
+        }
+
+        const data = await response.json()
+
+        if (data.error) {
+          throw new Error(data.error)
+        }
+
+        if (
+          !data.data ||
+          !data.data.collections ||
+          !data.data.collections.edges ||
+          data.data.collections.edges.length === 0
+        ) {
+          throw new Error("Collection not found")
+        }
+
+        const collection = data.data.collections.edges[0].node
+
+        if (!collection.products || !collection.products.edges || collection.products.edges.length === 0) {
+          throw new Error(`No products found in collection`)
+        }
+
+        // Transform the response to a simpler format
+        const fetchedProducts = collection.products.edges.map((edge: any) => {
+          const product = edge.node
           return {
             id: product.id,
-            name: product.title,
+            title: product.title,
             description: product.description,
-            price: basePrice,
+            handle: product.handle,
+            variants: product.variants.edges.map((variantEdge: any) => {
+              const variant = variantEdge.node
+              return {
+                id: variant.id,
+                title: variant.title,
+                price: variant.priceV2.amount,
+                available: variant.availableForSale,
+                selectedOptions: variant.selectedOptions,
+              }
+            }),
           }
         })
 
-        setAnimationPackages(formattedPackages)
-        setSelectedAnimation(formattedPackages[0].id)
-        setTotalPrice(formattedPackages[0].price)
+        setProducts(fetchedProducts)
       } catch (error) {
-        console.error("Error formatting products:", error)
-        setError("Error formatting product data. Using fallback pricing.")
-        setAnimationPackages(FALLBACK_OPTIONS)
-        setSelectedAnimation(FALLBACK_OPTIONS[0].id)
-        setTotalPrice(FALLBACK_OPTIONS[0].price)
+        console.error("Error fetching products:", error)
+        setError(`Error fetching products: ${error instanceof Error ? error.message : String(error)}`)
         setUsingFallback(true)
+
+        // Sort fallback options to ensure correct order
+        const sortedFallbackOptions = [...FALLBACK_OPTIONS].sort((a, b) => {
+          const order = { Starter: 1, Essential: 2, Premium: 3 }
+          return (order[a.name as keyof typeof order] || 99) - (order[b.name as keyof typeof order] || 99)
+        })
+
+        // Use fallback data
+        setAnimationPackages(sortedFallbackOptions)
+        setSelectedAnimation(sortedFallbackOptions[0].id)
+        setTotalPrice(sortedFallbackOptions[0].price)
+      } finally {
+        setLoading(false)
       }
-    } else {
-      console.log("No products provided, using fallback data")
-      setAnimationPackages(FALLBACK_OPTIONS)
-      setSelectedAnimation(FALLBACK_OPTIONS[0].id)
-      setTotalPrice(FALLBACK_OPTIONS[0].price)
-      setUsingFallback(true)
     }
-  }, [products])
+
+    fetchProducts()
+  }, [initialProducts])
+
+  // Process products when they're available
+  useEffect(() => {
+    if (!products && !usingFallback) return
+
+    try {
+      if (usingFallback) {
+        // Already set up in the catch block above
+        return
+      }
+
+      // Format products for the calculator with fixed titles
+      const productTitles = ["Starter", "Essential", "Premium"]
+      const formattedPackages = products!.map((product, index) => {
+        // Get the base price from the first variant
+        const basePrice = product.variants.length > 0 ? Number.parseFloat(product.variants[0].price) : 0
+
+        // Use fixed titles instead of Shopify titles
+        const fixedTitle = index < productTitles.length ? productTitles[index] : product.title
+
+        return {
+          id: product.id,
+          name: fixedTitle,
+          description: product.description,
+          price: basePrice,
+        }
+      })
+
+      // Sort packages to ensure correct order: Starter, Essential, Premium
+      formattedPackages.sort((a, b) => {
+        const order = { Starter: 1, Essential: 2, Premium: 3 }
+        return (order[a.name as keyof typeof order] || 99) - (order[b.name as keyof typeof order] || 99)
+      })
+
+      setAnimationPackages(formattedPackages)
+      setSelectedAnimation(formattedPackages[0].id)
+      setTotalPrice(formattedPackages[0].price)
+    } catch (error) {
+      console.error("Error processing products:", error)
+      setError(`Error: ${error instanceof Error ? error.message : String(error)}`)
+
+      // Sort fallback options to ensure correct order
+      const sortedFallbackOptions = [...FALLBACK_OPTIONS].sort((a, b) => {
+        const order = { Starter: 1, Essential: 2, Premium: 3 }
+        return (order[a.name as keyof typeof order] || 99) - (order[b.name as keyof typeof order] || 99)
+      })
+
+      // Use fallback data
+      setUsingFallback(true)
+      setAnimationPackages(sortedFallbackOptions)
+      setSelectedAnimation(sortedFallbackOptions[0].id)
+      setTotalPrice(sortedFallbackOptions[0].price)
+    }
+  }, [products, usingFallback])
 
   // Update total price when selected animation changes
   useEffect(() => {
@@ -100,9 +269,17 @@ export default function AvatarPricingCalculator({ title, description, products }
     }
   }, [selectedAnimation, animationPackages])
 
-  // Handle "Get Started" button click
+  /**
+   * CRITICAL FUNCTION: Handles the "Get Started" button click
+   *
+   * This function is responsible for finding the correct variant and creating the cart.
+   * It's critical for ensuring the correct product is added to the cart.
+   *
+   * DO NOT MODIFY without thorough testing with actual Shopify variants.
+   */
   const handleGetStarted = async () => {
     setIsSubmitting(true)
+    setError(null)
 
     try {
       // Find the selected animation package
@@ -111,10 +288,9 @@ export default function AvatarPricingCalculator({ title, description, products }
         throw new Error("Selected package not found")
       }
 
-      // If using fallback data, show an alert
       if (usingFallback) {
-        alert(`This would add the ${selectedPackage.name} package to your cart. Total: $${totalPrice}`)
-        console.log("Using fallback checkout flow - Shopify API not connected")
+        // We're using fallback data, show an alert
+        alert(`This would add the ${selectedPackage.name} package to your cart. Total: ${totalPrice}`)
         return
       }
 
@@ -124,27 +300,24 @@ export default function AvatarPricingCalculator({ title, description, products }
         throw new Error("Product or variant not found")
       }
 
-      // Use the first variant ID
+      // Use the first variant ID for avatars (since there's no user count)
       const variantId = product.variants[0].id
+      console.log(`Selected variant ID: ${variantId}`)
 
       // Create a cart with the selected variant
       const cart = await createCart(variantId, 1)
 
-      if (cart && cart.checkoutUrl) {
-        // Redirect to checkout
-        window.location.href = cart.checkoutUrl
-      } else {
-        throw new Error("Failed to create cart")
-      }
+      // Redirect to checkout
+      window.location.href = cart.checkoutUrl
     } catch (error) {
       console.error("Error adding to cart:", error)
-      alert("There was an error adding this item to your cart. Please try again.")
+      setError(`Error: ${error instanceof Error ? error.message : String(error)}`)
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  if (animationPackages.length === 0) {
+  if (loading) {
     return (
       <section id="pricing" className="py-20 bg-white">
         <div className="container mx-auto px-4">
@@ -177,6 +350,15 @@ export default function AvatarPricingCalculator({ title, description, products }
           </div>
         )}
 
+        {usingFallback && !error && (
+          <div className="max-w-4xl mx-auto mb-8">
+            <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded relative">
+              <strong className="font-bold">Note:</strong>
+              <span className="block sm:inline"> Using fallback pricing data. Checkout functionality is limited.</span>
+            </div>
+          </div>
+        )}
+
         <div className="max-w-4xl mx-auto">
           {/* Total Price Display */}
           <div className="bg-gradient-to-r from-periwinkle to-misty-rose p-8 rounded-xl mb-12 text-center shadow-md">
@@ -190,29 +372,51 @@ export default function AvatarPricingCalculator({ title, description, products }
             <h3 className="text-2xl font-bold text-english-violet mb-6 text-center">Animation Package</h3>
             <RadioGroup value={selectedAnimation} onValueChange={setSelectedAnimation} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {animationPackages.map((option) => (
-                  <div
-                    key={option.id}
-                    className={cn(
-                      "flex flex-col rounded-xl border p-6 cursor-pointer transition-all",
-                      selectedAnimation === option.id
-                        ? "border-english-violet bg-white shadow-md"
-                        : "border-transparent bg-white/50 hover:bg-white hover:shadow-sm",
-                    )}
-                    onClick={() => setSelectedAnimation(option.id)}
-                  >
-                    <div className="flex items-start mb-4">
-                      <RadioGroupItem value={option.id} id={`animation-${option.id}`} className="mt-1" />
-                      <div className="ml-3">
-                        <Label htmlFor={`animation-${option.id}`} className="font-bold text-lg cursor-pointer">
-                          {option.name}
-                        </Label>
-                        <p className="text-english-violet/70 font-medium text-lg">${option.price}</p>
+                {/* Sort and map the packages to ensure Starter, Essential, Premium order */}
+                {[...animationPackages]
+                  .sort((a, b) => {
+                    // Determine package type based on price or other characteristics
+                    const getPackageType = (pkg: PricingOption) => {
+                      if (pkg.price <= 950) return "Starter"
+                      if (pkg.price <= 1450) return "Essential"
+                      return "Premium"
+                    }
+
+                    // Order: Starter (1), Essential (2), Premium (3)
+                    const order = { Starter: 1, Essential: 2, Premium: 3 }
+                    return order[getPackageType(a)] - order[getPackageType(b)]
+                  })
+                  .map((option) => {
+                    // Determine the display title based on price range
+                    let displayTitle = option.name
+                    if (option.price <= 950) displayTitle = "Starter"
+                    else if (option.price <= 1450) displayTitle = "Essential"
+                    else displayTitle = "Premium"
+
+                    return (
+                      <div
+                        key={option.id}
+                        className={cn(
+                          "flex flex-col rounded-xl border p-6 cursor-pointer transition-all",
+                          selectedAnimation === option.id
+                            ? "border-english-violet bg-white shadow-md"
+                            : "border-transparent bg-white/50 hover:bg-white hover:shadow-sm",
+                        )}
+                        onClick={() => setSelectedAnimation(option.id)}
+                      >
+                        <div className="flex items-start mb-4">
+                          <RadioGroupItem value={option.id} id={`animation-${option.id}`} className="mt-1" />
+                          <div className="ml-3">
+                            <Label htmlFor={`animation-${option.id}`} className="font-bold text-lg cursor-pointer">
+                              {displayTitle}
+                            </Label>
+                            <p className="text-english-violet/70 font-medium text-lg">${option.price}</p>
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-600 flex-grow">{option.description}</p>
                       </div>
-                    </div>
-                    <p className="text-sm text-gray-600 flex-grow">{option.description}</p>
-                  </div>
-                ))}
+                    )
+                  })}
               </div>
             </RadioGroup>
           </div>

@@ -7,12 +7,11 @@ import FAQ from "@/components/faq"
 import Footer from "@/components/footer"
 import AvatarMockup from "@/components/avatar-mockup"
 import GmailOnlyBadge from "@/components/gmail-only-badge"
-import { getProductsByCollection } from "@/lib/shopify"
 
-export default async function AvatarsPage() {
-  // Fetch products from the "Email Avatars" collection
-  const avatarProducts = await getProductsByCollection("Email Avatars")
+// Skip server-side data fetching during build
+export const dynamic = "force-dynamic"
 
+export default function AvatarsPage() {
   const avatarFaqs = [
     {
       question: "Which email clients support animated avatars?",
@@ -55,7 +54,7 @@ export default async function AvatarsPage() {
   ]
 
   return (
-    <ProductLayout productType="avatars" bgColor="bg-periwinkle" textColor="text-english-violet">
+    <ProductLayout productType="avatars" bgColor="bg-periwinkle" textColor="text-english-violet" logoVariant="pale">
       <Hero
         title={
           <div className="flex items-center flex-wrap gap-3">
@@ -85,6 +84,7 @@ export default async function AvatarsPage() {
 
       <HowItWorks title="How It Works" steps={avatarSteps} />
 
+      {/* Client component that will fetch products on the client side */}
       <AvatarPricingCalculator
         title="Choose Your Package"
         description={
@@ -98,7 +98,7 @@ export default async function AvatarsPage() {
             </p>
           </div>
         }
-        products={avatarProducts}
+        products={null} // Pass null, component will fetch on client side
       />
 
       <FAQ title="Frequently Asked Questions" faqs={avatarFaqs} />

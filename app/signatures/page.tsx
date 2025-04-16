@@ -6,12 +6,11 @@ import SignaturePricingCalculator from "@/components/signature-pricing-calculato
 import FAQ from "@/components/faq"
 import Footer from "@/components/footer"
 import SignatureMockup from "@/components/signature-mockup"
-import { getProductsByCollection } from "@/lib/shopify"
 
-export default async function SignaturesPage() {
-  // Fetch products from the "Email Signatures" collection
-  const signatureProducts = await getProductsByCollection("Email Signatures")
+// Skip server-side data fetching during build
+export const dynamic = "force-dynamic"
 
+export default function SignaturesPage() {
   const signatureFaqs = [
     {
       question: "Which email clients support animated signatures?",
@@ -54,7 +53,12 @@ export default async function SignaturesPage() {
   ]
 
   return (
-    <ProductLayout productType="signatures" bgColor="bg-misty-rose" textColor="text-english-violet">
+    <ProductLayout
+      productType="signatures"
+      bgColor="bg-misty-rose"
+      textColor="text-english-violet"
+      logoVariant="rose" // Add this line to pass the rose variant
+    >
       <Hero
         title="Email Signatures that bring your brand to life"
         subtitle="Thousands of emails are sent by each user each year. Imagine the reach with each user having a unique animated brand token."
@@ -79,10 +83,11 @@ export default async function SignaturesPage() {
 
       <HowItWorks title="How It Works" steps={signatureSteps} />
 
+      {/* Client component that will fetch products on the client side */}
       <SignaturePricingCalculator
         title="Build Your Package"
         description="All purchases include 2 rounds of revision, installation oversight, and step-by-step instructions."
-        products={signatureProducts}
+        products={null} // Pass null, component will fetch on client side
       />
 
       <FAQ title="Frequently Asked Questions" faqs={signatureFaqs} />

@@ -18,19 +18,22 @@ export default function Home() {
         <nav className="container mx-auto px-4 py-4 flex items-center justify-between relative z-10">
           <div className="flex items-center">
             <Link href="/">
-              <Logo size="large" />
+              <div style={{ transform: "scale(0.8)", transformOrigin: "left center" }}>
+                <Logo size="large" variant="dark" /> {/* Using the dark variant here, 20% smaller */}
+              </div>
             </Link>
           </div>
 
-          <div className="hidden md:flex items-center space-x-8">
-            <Link href="/avatars" className="text-english-violet/80 hover:text-english-violet transition-colors">
-              Avatars
+          <div className="hidden md:flex items-center space-x-2 bg-white/20 rounded-full p-1">
+            <Link href="/avatars">
+              <div className="px-4 py-2 rounded-full transition-all hover:bg-periwinkle hover:text-english-violet">
+                Avatars
+              </div>
             </Link>
-            <Link href="/signatures" className="text-english-violet/80 hover:text-english-violet transition-colors">
-              Signatures
-            </Link>
-            <Link href="#pricing" className="text-english-violet/80 hover:text-english-violet transition-colors">
-              Pricing
+            <Link href="/signatures">
+              <div className="px-4 py-2 rounded-full transition-all hover:bg-misty-rose hover:text-english-violet">
+                Signatures
+              </div>
             </Link>
           </div>
 
@@ -61,10 +64,7 @@ export default function Home() {
         {/* Hero Section */}
         <div className="container mx-auto px-4 pt-20 pb-32 relative z-10">
           <div className="max-w-4xl mx-auto text-center mb-16">
-            <h1 className="heading-xl text-english-violet mb-6">
-              Bring your emails to
-              life with animation.
-            </h1>
+            <h1 className="heading-xl text-english-violet mb-6">Bring your emails to life with animation.</h1>
             <p className="text-xl md:text-2xl mb-10 text-english-violet/80 max-w-2xl mx-auto">
               Stand out in crowded inboxes with animated email elements that create memorable brand impressions.
             </p>

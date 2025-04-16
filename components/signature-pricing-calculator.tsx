@@ -1,5 +1,20 @@
 "use client"
 
+/**
+ * @component SignaturePricingCalculator
+ * @version 1.1.0
+ * @description
+ * Pricing calculator for email signatures that handles variant selection based on user count.
+ *
+ * CRITICAL COMPONENT: This component directly impacts checkout functionality and revenue.
+ * Any changes should be thoroughly tested with actual Shopify variants.
+ *
+ * @lastModified 2023-04-15
+ * @changelog
+ * - 1.0.0: Initial implementation
+ * - 1.1.0: Fixed variant selection to correctly match user count with Shopify variants
+ */
+
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -51,7 +66,12 @@ const FALLBACK_OPTIONS = [
 // Default price per user
 const USER_PRICE = 100
 
-export default function SignaturePricingCalculator({ title, description, products }: SignaturePricingCalculatorProps) {
+export default function SignaturePricingCalculator({
+  title,
+  description,
+  products: initialProducts,
+}: SignaturePricingCalculatorProps) {
+  const [products, setProducts] = useState<ShopifyProduct[] | null>(initialProducts)
   const [animationPackages, setAnimationPackages] = useState<PricingOption[]>([])
   const [selectedAnimation, setSelectedAnimation] = useState<string>("")
   const [userCount, setUserCount] = useState<number>(1)
@@ -60,43 +80,182 @@ export default function SignaturePricingCalculator({ title, description, product
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   const [usingFallback, setUsingFallback] = useState<boolean>(false)
+  const [loading, setLoading] = useState<boolean>(true)
 
-  // Process products on component mount
+  // Fetch products if not provided
   useEffect(() => {
-    if (products && products.length > 0) {
-      try {
-        // Format products for the calculator
-        const formattedPackages = products.map((product) => {
-          // Get the base price from the first variant
-          const basePrice = product.variants.length > 0 ? Number.parseFloat(product.variants[0].price) : 0
+    async function fetchProducts() {
+      if (initialProducts) {
+        setProducts(initialProducts)
+        return
+      }
 
+      setLoading(true)
+      try {
+        // CRITICAL: This GraphQL query must include selectedOptions to properly match variants with user counts
+        const response = await fetch("/api/shopify", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            query: `
+              query GetProductsByCollection($title: String!) {
+                collections(first: 1, query: $title) {
+                  edges {
+                    node {
+                      title
+                      products(first: 10) {
+                        edges {
+                          node {
+                            id
+                            title
+                            description
+                            handle
+                            variants(first: 20) {
+                              edges {
+                                node {
+                                  id
+                                  title
+                                  priceV2 {
+                                    amount
+                                    currencyCode
+                                  }
+                                  availableForSale
+                                  selectedOptions {
+                                    name
+                                    value
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            `,
+            variables: {
+              title: "Email Signatures",
+            },
+          }),
+        })
+
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`)
+        }
+
+        const data = await response.json()
+
+        if (data.error) {
+          throw new Error(data.error)
+        }
+
+        if (
+          !data.data ||
+          !data.data.collections ||
+          !data.data.collections.edges ||
+          data.data.collections.edges.length === 0
+        ) {
+          throw new Error("Collection not found")
+        }
+
+        const collection = data.data.collections.edges[0].node
+
+        if (!collection.products || !collection.products.edges || collection.products.edges.length === 0) {
+          throw new Error(`No products found in collection`)
+        }
+
+        // Transform the response to a simpler format
+        const fetchedProducts = collection.products.edges.map((edge: any) => {
+          const product = edge.node
           return {
             id: product.id,
-            name: product.title,
+            title: product.title,
             description: product.description,
-            price: basePrice,
+            handle: product.handle,
+            variants: product.variants.edges.map((variantEdge: any) => {
+              const variant = variantEdge.node
+              return {
+                id: variant.id,
+                title: variant.title,
+                price: variant.priceV2.amount,
+                available: variant.availableForSale,
+                selectedOptions: variant.selectedOptions,
+              }
+            }),
           }
         })
 
-        setAnimationPackages(formattedPackages)
-        setSelectedAnimation(formattedPackages[0].id)
-        setTotalPrice(formattedPackages[0].price + USER_PRICE) // Base price + 1 user
+        setProducts(fetchedProducts)
       } catch (error) {
-        console.error("Error formatting products:", error)
-        setError("Error formatting product data. Using fallback pricing.")
-        setAnimationPackages(FALLBACK_OPTIONS)
-        setSelectedAnimation(FALLBACK_OPTIONS[0].id)
-        setTotalPrice(FALLBACK_OPTIONS[0].price + USER_PRICE)
+        console.error("Error fetching products:", error)
+        setError(`Error fetching products: ${error instanceof Error ? error.message : String(error)}`)
+
+        // Sort fallback options to ensure correct order
+        const sortedFallbackOptions = [...FALLBACK_OPTIONS].sort((a, b) => {
+          const order = { Starter: 1, Essential: 2, Premium: 3 }
+          return (order[a.name as keyof typeof order] || 99) - (order[b.name as keyof typeof order] || 99)
+        })
+
+        // Use fallback data
         setUsingFallback(true)
+        setAnimationPackages(sortedFallbackOptions)
+        setSelectedAnimation(sortedFallbackOptions[0].id)
+        setTotalPrice(sortedFallbackOptions[0].price + USER_PRICE) // Base price + 1 user
+      } finally {
+        setLoading(false)
       }
-    } else {
-      console.log("No products provided, using fallback data")
-      setAnimationPackages(FALLBACK_OPTIONS)
-      setSelectedAnimation(FALLBACK_OPTIONS[0].id)
-      setTotalPrice(FALLBACK_OPTIONS[0].price + USER_PRICE)
-      setUsingFallback(true)
     }
-  }, [products])
+
+    fetchProducts()
+  }, [initialProducts])
+
+  // Process products when they're available
+  useEffect(() => {
+    if (!products && !usingFallback) return
+
+    try {
+      if (usingFallback) {
+        // Already set up in the catch block above
+        return
+      }
+
+      // Format products for the calculator
+      const formattedPackages = products!.map((product) => {
+        // Get the base price from the first variant
+        const basePrice = product.variants.length > 0 ? Number.parseFloat(product.variants[0].price) : 0
+
+        return {
+          id: product.id,
+          name: product.title,
+          description: product.description,
+          price: basePrice,
+        }
+      })
+
+      setAnimationPackages(formattedPackages)
+      setSelectedAnimation(formattedPackages[0].id)
+      setTotalPrice(formattedPackages[0].price + USER_PRICE) // Base price + 1 user
+    } catch (error) {
+      console.error("Error processing products:", error)
+      setError(`Error: ${error instanceof Error ? error.message : String(error)}`)
+
+      // Sort fallback options to ensure correct order
+      const sortedFallbackOptions = [...FALLBACK_OPTIONS].sort((a, b) => {
+        const order = { Starter: 1, Essential: 2, Premium: 3 }
+        return (order[a.name as keyof typeof order] || 99) - (order[b.name as keyof typeof order] || 99)
+      })
+
+      // Use fallback data
+      setUsingFallback(true)
+      setAnimationPackages(sortedFallbackOptions)
+      setSelectedAnimation(sortedFallbackOptions[0].id)
+      setTotalPrice(sortedFallbackOptions[0].price + USER_PRICE) // Base price + 1 user
+    }
+  }, [products, usingFallback])
 
   // Calculate total price
   useEffect(() => {
@@ -111,9 +270,124 @@ export default function SignaturePricingCalculator({ title, description, product
     }
   }, [selectedAnimation, userCount, animationPackages])
 
-  // Handle "Get Started" button click
+  /**
+   * CRITICAL FUNCTION: Finds the variant ID that matches the user count
+   *
+   * This function is responsible for selecting the correct Shopify variant based on the user count.
+   * It's critical for ensuring the correct price is charged at checkout.
+   *
+   * DO NOT MODIFY without thorough testing with actual Shopify variants.
+   *
+   * @param product - The Shopify product containing variants
+   * @param userCount - The number of users selected
+   * @returns The variant ID that matches the user count, or null if no match is found
+   */
+  const findVariantForUserCount = (product: ShopifyProduct, userCount: number): string | null => {
+    if (!product || !product.variants || product.variants.length === 0) {
+      console.error("Invalid product or no variants available", product)
+      return null
+    }
+
+    // For user counts > 50, look for a "custom" variant
+    if (userCount > 50) {
+      console.log(`Looking for custom variant for user count > 50: ${userCount}`)
+      const customVariant = product.variants.find(
+        (variant) =>
+          variant.title.toLowerCase().includes("custom") ||
+          (variant.selectedOptions &&
+            variant.selectedOptions.some((option) => option.value.toLowerCase().includes("custom"))),
+      )
+
+      if (customVariant) {
+        console.log(`Found custom variant: ${customVariant.id}`)
+        return customVariant.id
+      }
+
+      console.log("No custom variant found, looking for highest user count variant")
+      // If no custom variant found, use the highest user count variant
+      const sortedVariants = [...product.variants].sort((a, b) => {
+        const aCount = extractUserCount(a)
+        const bCount = extractUserCount(b)
+        return bCount - aCount
+      })
+
+      if (sortedVariants.length > 0) {
+        console.log(
+          `Using highest user count variant: ${sortedVariants[0].id} (${extractUserCount(sortedVariants[0])} users)`,
+        )
+        return sortedVariants[0]?.id || null
+      }
+
+      return null
+    }
+
+    // Try to find an exact match for the user count
+    console.log(`Looking for exact match for user count: ${userCount}`)
+    const exactMatch = product.variants.find((variant) => {
+      if (!variant.selectedOptions) return false
+      return variant.selectedOptions.some(
+        (option) => option.name === "User Count" && option.value === userCount.toString(),
+      )
+    })
+
+    if (exactMatch) {
+      console.log(`Found exact match variant: ${exactMatch.id}`)
+      return exactMatch.id
+    }
+
+    console.log(`No exact match found, looking for closest match below ${userCount}`)
+    // If no exact match, find the closest match below the requested count
+    const validVariants = product.variants
+      .filter((variant) => {
+        if (!variant.selectedOptions) return false
+        const countOption = variant.selectedOptions.find((option) => option.name === "User Count")
+        if (!countOption) return false
+        const count = Number.parseInt(countOption.value, 10)
+        return !isNaN(count) && count <= userCount
+      })
+      .sort((a, b) => {
+        const aCount = extractUserCount(a)
+        const bCount = extractUserCount(b)
+        return bCount - aCount // Sort in descending order
+      })
+
+    if (validVariants.length > 0) {
+      console.log(`Using closest match variant: ${validVariants[0].id} (${extractUserCount(validVariants[0])} users)`)
+      return validVariants[0]?.id || null
+    }
+
+    // Fallback to the first variant if no match is found
+    console.log(`No matching variant found, using first variant: ${product.variants[0].id}`)
+    return product.variants[0].id
+  }
+
+  /**
+   * Helper function to extract user count from variant
+   *
+   * @param variant - The Shopify variant
+   * @returns The user count as a number, or 0 if not found
+   */
+  const extractUserCount = (variant: any): number => {
+    if (!variant.selectedOptions) return 0
+
+    const countOption = variant.selectedOptions.find((option: any) => option.name === "User Count")
+    if (!countOption) return 0
+
+    const count = Number.parseInt(countOption.value, 10)
+    return isNaN(count) ? 0 : count
+  }
+
+  /**
+   * CRITICAL FUNCTION: Handles the "Get Started" button click
+   *
+   * This function is responsible for finding the correct variant and creating the cart.
+   * It's critical for ensuring the correct product is added to the cart.
+   *
+   * DO NOT MODIFY without thorough testing with actual Shopify variants.
+   */
   const handleGetStarted = async () => {
     setIsSubmitting(true)
+    setError(null)
 
     try {
       // Find the selected animation package
@@ -122,25 +396,27 @@ export default function SignaturePricingCalculator({ title, description, product
         throw new Error("Selected package not found")
       }
 
-      // If using fallback data, show an alert
       if (usingFallback) {
+        // We're using fallback data, show an alert
         alert(
-          `This would add the ${selectedPackage.name} package with ${userCount} users to your cart. ${
-            isCustomPricing ? "Custom pricing will be applied." : `Total: $${totalPrice}`
-          }`,
+          `This would add the ${selectedPackage.name} package with ${userCount} users to your cart. Total: ${totalPrice}`,
         )
-        console.log("Using fallback checkout flow - Shopify API not connected")
         return
       }
 
       // Find the product in the original products array
       const product = products?.find((p) => p.id === selectedAnimation)
-      if (!product || product.variants.length === 0) {
-        throw new Error("Product or variant not found")
+      if (!product) {
+        throw new Error("Product not found")
       }
 
-      // Use the first variant ID
-      const variantId = product.variants[0].id
+      // Find the variant that matches the user count
+      const variantId = findVariantForUserCount(product, userCount)
+      if (!variantId) {
+        throw new Error(`No variant found for user count: ${userCount}`)
+      }
+
+      console.log(`Selected variant ID: ${variantId} for user count: ${userCount}`)
 
       // Create custom attributes for the cart
       const customAttributes = [
@@ -153,21 +429,17 @@ export default function SignaturePricingCalculator({ title, description, product
       // Create a cart with the selected variant
       const cart = await createCart(variantId, 1, customAttributes)
 
-      if (cart && cart.checkoutUrl) {
-        // Redirect to checkout
-        window.location.href = cart.checkoutUrl
-      } else {
-        throw new Error("Failed to create cart")
-      }
+      // Redirect to checkout
+      window.location.href = cart.checkoutUrl
     } catch (error) {
       console.error("Error adding to cart:", error)
-      alert("There was an error adding this item to your cart. Please try again.")
+      setError(`Error: ${error instanceof Error ? error.message : String(error)}`)
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  if (animationPackages.length === 0) {
+  if (loading) {
     return (
       <section id="pricing" className="py-20 bg-white">
         <div className="container mx-auto px-4">
@@ -200,6 +472,15 @@ export default function SignaturePricingCalculator({ title, description, product
           </div>
         )}
 
+        {usingFallback && !error && (
+          <div className="max-w-4xl mx-auto mb-8">
+            <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded relative">
+              <strong className="font-bold">Note:</strong>
+              <span className="block sm:inline"> Using fallback pricing data. Checkout functionality is limited.</span>
+            </div>
+          </div>
+        )}
+
         <div className="max-w-4xl mx-auto">
           {/* Total Price Display */}
           <div className="bg-gradient-to-r from-periwinkle to-misty-rose p-8 rounded-xl mb-12 text-center shadow-md">
@@ -214,37 +495,62 @@ export default function SignaturePricingCalculator({ title, description, product
 
           {/* Pricing Options */}
           <div className="grid grid-cols-1 gap-8">
-            {/* Animation Package and User Count in a connected layout */}
+            {/* Animation Package and User Count in a vertically stacked layout */}
             <div className="bg-seasalt p-8 rounded-xl">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 gap-8">
                 {/* Animation Package */}
                 <div>
                   <h3 className="text-2xl font-bold text-english-violet mb-6 text-center">Animation Package</h3>
                   <RadioGroup value={selectedAnimation} onValueChange={setSelectedAnimation} className="space-y-4">
-                    <div className="space-y-4">
-                      {animationPackages.map((option) => (
-                        <div
-                          key={option.id}
-                          className={cn(
-                            "flex flex-col rounded-xl border p-6 cursor-pointer transition-all",
-                            selectedAnimation === option.id
-                              ? "border-english-violet bg-white shadow-md"
-                              : "border-transparent bg-white/50 hover:bg-white hover:shadow-sm",
-                          )}
-                          onClick={() => setSelectedAnimation(option.id)}
-                        >
-                          <div className="flex items-start mb-4">
-                            <RadioGroupItem value={option.id} id={`animation-${option.id}`} className="mt-1" />
-                            <div className="ml-3">
-                              <Label htmlFor={`animation-${option.id}`} className="font-bold text-lg cursor-pointer">
-                                {option.name}
-                              </Label>
-                              <p className="text-english-violet/70 font-medium text-lg">${option.price}</p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* Sort and map the packages to ensure Starter, Essential, Premium order */}
+                      {[...animationPackages]
+                        .sort((a, b) => {
+                          // Determine package type based on price or other characteristics
+                          const getPackageType = (pkg: PricingOption) => {
+                            if (pkg.price <= 950) return "Starter"
+                            if (pkg.price <= 1450) return "Essential"
+                            return "Premium"
+                          }
+
+                          // Order: Starter (1), Essential (2), Premium (3)
+                          const order = { Starter: 1, Essential: 2, Premium: 3 }
+                          return order[getPackageType(a)] - order[getPackageType(b)]
+                        })
+                        .map((option) => {
+                          // Determine the display title based on price range
+                          let displayTitle = option.name
+                          if (option.price <= 950) displayTitle = "Starter"
+                          else if (option.price <= 1450) displayTitle = "Essential"
+                          else displayTitle = "Premium"
+
+                          return (
+                            <div
+                              key={option.id}
+                              className={cn(
+                                "flex flex-col rounded-xl border p-6 cursor-pointer transition-all",
+                                selectedAnimation === option.id
+                                  ? "border-english-violet bg-white shadow-md"
+                                  : "border-transparent bg-white/50 hover:bg-white hover:shadow-sm",
+                              )}
+                              onClick={() => setSelectedAnimation(option.id)}
+                            >
+                              <div className="flex items-start mb-4">
+                                <RadioGroupItem value={option.id} id={`animation-${option.id}`} className="mt-1" />
+                                <div className="ml-3">
+                                  <Label
+                                    htmlFor={`animation-${option.id}`}
+                                    className="font-bold text-lg cursor-pointer"
+                                  >
+                                    {displayTitle}
+                                  </Label>
+                                  <p className="text-english-violet/70 font-medium text-lg">${option.price}</p>
+                                </div>
+                              </div>
+                              <p className="text-sm text-gray-600 flex-grow">{option.description}</p>
                             </div>
-                          </div>
-                          <p className="text-sm text-gray-600 flex-grow">{option.description}</p>
-                        </div>
-                      ))}
+                          )
+                        })}
                     </div>
                   </RadioGroup>
                 </div>
@@ -252,64 +558,65 @@ export default function SignaturePricingCalculator({ title, description, product
                 {/* User Count */}
                 <div>
                   <h3 className="text-2xl font-bold text-english-violet mb-6 text-center">User Count</h3>
-                  <div className="rounded-xl border p-6 bg-white shadow-md h-full">
-                    <div className="flex items-start mb-4">
-                      <div className="ml-3 w-full">
-                        <div className="flex items-center justify-between w-full">
+                  <div className="rounded-xl border p-6 bg-white shadow-md">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                      {/* Left side - Description */}
+                      <div className="md:w-1/2">
+                        <div className="flex items-center gap-2 mb-2">
                           <Label className="font-bold text-lg">User Count</Label>
                           <span className="text-english-violet/70 font-medium text-lg">${USER_PRICE}/user</span>
                         </div>
-                        <p className="text-sm text-gray-600 mb-4">Number of users who will use the animation</p>
-                      </div>
-                    </div>
+                        <p className="text-sm text-gray-600">Number of users who will use the animation</p>
 
-                    <div className="mt-4 bg-white p-4 rounded-lg">
-                      <Label htmlFor="user-count" className="text-sm font-medium block mb-2">
-                        Number of Users
-                      </Label>
-                      <div className="flex items-center space-x-4">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setUserCount(Math.max(1, userCount - 1))}
-                          className="h-10 w-10 p-0 rounded-md"
-                        >
-                          -
-                        </Button>
-                        <Input
-                          id="user-count"
-                          type="number"
-                          min="1"
-                          max={100}
-                          value={userCount}
-                          onChange={(e) => {
-                            const value = Number.parseInt(e.target.value)
-                            if (!isNaN(value)) {
-                              setUserCount(Math.max(1, value))
-                            }
-                          }}
-                          className="h-10 text-center"
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => {
-                            setUserCount(userCount + 1)
-                          }}
-                          className="h-10 w-10 p-0 rounded-md"
-                        >
-                          +
-                        </Button>
-                      </div>
-                      <div className="mt-2 text-right text-sm text-english-violet/70">
                         {userCount > 50 ? (
-                          <div className="text-center py-2">
+                          <div className="mt-4 py-2">
                             <p className="font-medium text-english-violet">Custom Pricing Available</p>
                             <p className="text-sm text-gray-600 mt-1">Contact us for a custom quote for your team</p>
                           </div>
                         ) : (
-                          <span>Subtotal: ${USER_PRICE * userCount}</span>
+                          <p className="mt-4 font-medium text-english-violet/70">Subtotal: ${USER_PRICE * userCount}</p>
                         )}
+                      </div>
+
+                      {/* Right side - Input controls */}
+                      <div className="md:w-1/2">
+                        <Label htmlFor="user-count" className="text-sm font-medium block mb-2">
+                          Number of Users
+                        </Label>
+                        <div className="flex items-center space-x-4">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setUserCount(Math.max(1, userCount - 1))}
+                            className="h-10 w-10 p-0 rounded-md"
+                          >
+                            -
+                          </Button>
+                          <Input
+                            id="user-count"
+                            type="number"
+                            min="1"
+                            max={100}
+                            value={userCount}
+                            onChange={(e) => {
+                              const value = Number.parseInt(e.target.value)
+                              if (!isNaN(value)) {
+                                setUserCount(Math.max(1, value))
+                              }
+                            }}
+                            className="h-10 text-center"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                              setUserCount(userCount + 1)
+                            }}
+                            className="h-10 w-10 p-0 rounded-md"
+                          >
+                            +
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
