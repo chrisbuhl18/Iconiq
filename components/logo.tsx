@@ -33,7 +33,10 @@ export default function Logo({
   }
 
   return (
-    <div className={cn("relative flex items-center scale-80 transform-gpu", className)}>
+    <div
+      className={cn("relative flex items-center", className)}
+      style={{ transform: "scale(0.8)", transformOrigin: "left center" }}
+    >
       <Image
         src={logoSrc || "/placeholder.svg"}
         alt="Lumio"

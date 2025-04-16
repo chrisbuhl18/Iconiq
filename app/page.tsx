@@ -21,7 +21,7 @@ export default function Home() {
             {/* Logo - always on the left */}
             <div className="flex-shrink-0">
               <Link href="/">
-                <div style={{ transform: "scale(0.8)", transformOrigin: "left center" }}>
+                <div style={{ transform: "scale(0.7)", transformOrigin: "left center" }}>
                   <Logo size="large" variant="dark" />
                 </div>
               </Link>
