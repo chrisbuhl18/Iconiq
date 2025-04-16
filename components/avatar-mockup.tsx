@@ -56,10 +56,10 @@ export default function AvatarMockup({ className }: AvatarMockupProps) {
                     </div>
                     <div className="flex-1">
                       <div className="flex justify-between mb-1">
-                        <div className="font-bold text-sm font-heading">Lumio Team</div>
+                        <div className="font-bold text-sm">Lumio Team</div>
                         <div className="text-xs text-gray-500">10:30 AM</div>
                       </div>
-                      <div className="text-sm font-medium mb-1">Welcome to Email Tokens!</div>
+                      <div className="text-sm font-medium mb-1">Make Memorable Emails!</div>
                       <div className="text-xs text-gray-500 line-clamp-2">
                         Thank you for your interest in our animated email solutions. We're excited to help you stand out
                         in crowded inboxes...
@@ -151,7 +151,7 @@ export default function AvatarMockup({ className }: AvatarMockupProps) {
                     </div>
                     <div className="flex-1">
                       <div className="flex justify-between mb-0.5">
-                        <div className="font-bold text-xs font-heading">Lumio Team</div>
+                        <div className="font-bold text-xs">Lumio Team</div>
                         <div className="text-[10px] text-gray-500">10:30 AM</div>
                       </div>
                       <div className="text-xs font-medium mb-0.5">Welcome to Email Tokens!</div>

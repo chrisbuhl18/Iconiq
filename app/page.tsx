@@ -57,7 +57,7 @@ export default function Home() {
 
             {/* Desktop-only right side elements */}
             <div className="hidden md:flex items-center justify-end space-x-4">
-              <Button className="bg-black hover:bg-black/90 text-white rounded-full px-6">Get Started</Button>
+              <Button className="bg-black hover:bg-black/90 text-white rounded-full px-6">Contact</Button>
             </div>
           </div>
         </nav>
@@ -69,22 +69,6 @@ export default function Home() {
             <p className="text-xl md:text-2xl mb-10 text-english-violet/80 max-w-2xl mx-auto">
               Capture attention, boost your brand, and stand out with animated email elements.
             </p>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-              <Link href="/avatars">
-                <Button className="bg-english-violet hover:bg-english-violet/90 text-white rounded-full px-8 py-6 text-lg">
-                  Explore Products <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-              <Link href="#contact">
-                <Button
-                  variant="outline"
-                  className="border-english-violet text-english-violet rounded-full px-8 py-6 text-lg"
-                >
-                  Contact Us
-                </Button>
-              </Link>
-            </div>
           </div>
 
           {/* Product Showcase - Desktop */}
@@ -103,23 +87,25 @@ export default function Home() {
                 ></div>
 
                 <div className="w-[320px] bg-white rounded-xl shadow-xl overflow-hidden relative z-10">
-                  {/* Browser header */}
-                  <div className="bg-periwinkle p-3 flex items-center">
-                    <div className="flex space-x-2">
+                  {/* Product header - styled as a button/label */}
+                  <div className="bg-periwinkle p-3 flex items-center justify-center relative">
+                    <div className="absolute left-2 flex space-x-2">
                       <div className="w-3 h-3 bg-red-400 rounded-full"></div>
                       <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
                       <div className="w-3 h-3 bg-green-400 rounded-full"></div>
                     </div>
-                    <div className="mx-auto bg-white/20 rounded-full px-4 py-1 text-xs text-white">Gmail</div>
+                    <div className="font-bold text-white text-sm bg-english-violet/20 px-6 py-1.5 rounded-full shadow-sm">
+                      Email Avatars
+                    </div>
                   </div>
 
                   {/* Email content */}
                   <div className="p-4">
-                    {/* Email with animated avatar */}
-                    <div className="border-b pb-3 mb-3">
+                    {/* Email with animated avatar - larger size */}
+                    <div className="border-b pb-4 mb-4">
                       <div className="flex items-start">
                         <div className="mr-3 flex-shrink-0">
-                          <AnimatedAvatar size="sm" />
+                          <AnimatedAvatar size="md" />
                         </div>
                         <div className="flex-1">
                           <div className="flex justify-between mb-1">
@@ -128,30 +114,47 @@ export default function Home() {
                           </div>
                           <div className="text-sm font-medium mb-1">Make your email memorable!</div>
                           <div className="text-xs text-gray-500 line-clamp-2">
-                            Thank you for your interest in our animated email solutions...
+                            Thank you for your interest in our animated email solutions. We're excited to help you stand
+                            out in crowded inboxes...
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    {/* Regular emails */}
-                    {[1, 2].map((i) => (
-                      <div key={i} className="border-b pb-3 mb-3">
-                        <div className="flex items-start">
-                          <div className="w-8 h-8 rounded-full bg-gray-200 mr-3 flex-shrink-0"></div>
-                          <div className="flex-1">
-                            <div className="flex justify-between mb-1">
-                              <div className="font-bold text-sm">Sender Name</div>
-                              <div className="text-xs text-gray-500">{`${i + 8}:${i * 15} AM`}</div>
-                            </div>
-                            <div className="text-sm font-medium mb-1">Email Subject Line</div>
-                            <div className="text-xs text-gray-500 line-clamp-1">
-                              Lorem ipsum dolor sit amet, consectetur adipiscing elit...
-                            </div>
+                    {/* Just one regular email - larger size */}
+                    <div className="pb-4 mb-4 border-b">
+                      <div className="flex items-start">
+                        <div className="w-12 h-12 rounded-full bg-gray-200 mr-3 flex-shrink-0"></div>
+                        <div className="flex-1">
+                          <div className="flex justify-between mb-1">
+                            <div className="font-bold text-sm">Sender Name</div>
+                            <div className="text-xs text-gray-500">9:15 AM</div>
+                          </div>
+                          <div className="text-sm font-medium mb-1">Email Subject Line</div>
+                          <div className="text-xs text-gray-500 line-clamp-2">
+                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam in dui mauris...
                           </div>
                         </div>
                       </div>
-                    ))}
+                    </div>
+
+                    {/* Third email preview that gets cropped off */}
+                    <div className="pb-4 overflow-hidden" style={{ maxHeight: "60px" }}>
+                      <div className="flex items-start">
+                        <div className="w-12 h-12 rounded-full bg-gray-300 mr-3 flex-shrink-0"></div>
+                        <div className="flex-1">
+                          <div className="flex justify-between mb-1">
+                            <div className="font-bold text-sm">Another Sender</div>
+                            <div className="text-xs text-gray-500">8:45 AM</div>
+                          </div>
+                          <div className="text-sm font-medium mb-1">Meeting Reminder</div>
+                          <div className="text-xs text-gray-500 line-clamp-2">
+                            Just a reminder about our upcoming meeting scheduled for tomorrow at 2 PM. Please bring
+                            your...
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="bg-periwinkle/30 p-2 text-center text-xs text-english-violet font-medium">
@@ -173,15 +176,15 @@ export default function Home() {
                 ></div>
 
                 <div className="w-[320px] bg-white rounded-xl shadow-xl overflow-hidden relative z-10">
-                  {/* Browser header */}
-                  <div className="bg-misty-rose p-3 flex items-center">
-                    <div className="flex space-x-2">
+                  {/* Product header - styled as a button/label */}
+                  <div className="bg-misty-rose p-3 flex items-center justify-center relative">
+                    <div className="absolute left-2 flex space-x-2">
                       <div className="w-3 h-3 bg-red-400 rounded-full"></div>
                       <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
                       <div className="w-3 h-3 bg-green-400 rounded-full"></div>
                     </div>
-                    <div className="mx-auto bg-white/20 rounded-full px-4 py-1 text-xs text-english-violet">
-                      Email Compose
+                    <div className="font-bold text-english-violet text-sm bg-white/30 px-6 py-1.5 rounded-full shadow-sm">
+                      Email Signatures
                     </div>
                   </div>
 
@@ -307,22 +310,6 @@ export default function Home() {
             <p className="text-lg mb-6 text-english-violet/80 max-w-2xl mx-auto">
               Stand out in crowded inboxes with animated email elements that create memorable brand impressions.
             </p>
-
-            <div className="flex flex-col items-center justify-center gap-3 mb-8">
-              <Link href="/avatars">
-                <Button className="bg-english-violet hover:bg-english-violet/90 text-white rounded-full px-6 py-4 text-base">
-                  Explore Products <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-              <Link href="#contact">
-                <Button
-                  variant="outline"
-                  className="border-english-violet text-english-violet rounded-full px-6 py-4 text-base"
-                >
-                  Contact Us
-                </Button>
-              </Link>
-            </div>
           </div>
 
           {/* Product Showcase - Mobile */}
@@ -343,14 +330,16 @@ export default function Home() {
               ></div>
 
               <div className="w-full bg-white rounded-xl shadow-xl overflow-hidden relative z-10">
-                {/* Browser header */}
-                <div className="bg-periwinkle p-2 flex items-center">
-                  <div className="flex space-x-2">
+                {/* Product header - styled as a button/label */}
+                <div className="bg-periwinkle p-2 flex items-center justify-center relative">
+                  <div className="absolute left-2 flex space-x-2">
                     <div className="w-2 h-2 bg-red-400 rounded-full"></div>
                     <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
                     <div className="w-2 h-2 bg-green-400 rounded-full"></div>
                   </div>
-                  <div className="mx-auto bg-white/20 rounded-full px-3 py-0.5 text-xs text-white">Gmail</div>
+                  <div className="font-bold text-white text-xs bg-english-violet/20 px-4 py-1 rounded-full shadow-sm">
+                    Email Avatars
+                  </div>
                 </div>
 
                 {/* Email content - simplified for mobile */}
@@ -412,15 +401,15 @@ export default function Home() {
               ></div>
 
               <div className="w-full bg-white rounded-xl shadow-xl overflow-hidden relative z-10">
-                {/* Browser header */}
-                <div className="bg-misty-rose p-2 flex items-center">
-                  <div className="flex space-x-2">
+                {/* Product header - styled as a button/label */}
+                <div className="bg-misty-rose p-2 flex items-center justify-center relative">
+                  <div className="absolute left-2 flex space-x-2">
                     <div className="w-2 h-2 bg-red-400 rounded-full"></div>
                     <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
                     <div className="w-2 h-2 bg-green-400 rounded-full"></div>
                   </div>
-                  <div className="mx-auto bg-white/20 rounded-full px-3 py-0.5 text-xs text-english-violet">
-                    Email Compose
+                  <div className="font-bold text-english-violet text-xs bg-white/30 px-4 py-1 rounded-full shadow-sm">
+                    Email Signatures
                   </div>
                 </div>
 
@@ -553,23 +542,25 @@ export default function Home() {
               <div className="relative bg-white rounded-3xl shadow-xl p-6 z-10">
                 <div className="w-full h-[500px] bg-periwinkle/10 rounded-2xl flex items-center justify-center">
                   <div className="w-[320px] bg-white rounded-xl shadow-lg overflow-hidden">
-                    {/* Browser header */}
-                    <div className="bg-periwinkle p-3 flex items-center">
-                      <div className="flex space-x-2">
+                    {/* Product header - styled as a button/label */}
+                    <div className="bg-periwinkle p-3 flex items-center justify-center relative">
+                      <div className="absolute left-2 flex space-x-2">
                         <div className="w-3 h-3 bg-red-400 rounded-full"></div>
                         <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
                         <div className="w-3 h-3 bg-green-400 rounded-full"></div>
                       </div>
-                      <div className="mx-auto bg-white/20 rounded-full px-4 py-1 text-xs text-white">Gmail</div>
+                      <div className="font-bold text-white text-sm bg-english-violet/20 px-6 py-1.5 rounded-full shadow-sm">
+                        Email Avatars
+                      </div>
                     </div>
 
                     {/* Email content */}
                     <div className="p-4">
-                      {/* Email with animated avatar */}
-                      <div className="border-b pb-3 mb-3">
+                      {/* Email with animated avatar - larger size */}
+                      <div className="border-b pb-4 mb-4">
                         <div className="flex items-start">
                           <div className="mr-3 flex-shrink-0">
-                            <AnimatedAvatar size="sm" />
+                            <AnimatedAvatar size="md" />
                           </div>
                           <div className="flex-1">
                             <div className="flex justify-between mb-1">
@@ -578,30 +569,47 @@ export default function Home() {
                             </div>
                             <div className="text-sm font-medium mb-1">Make your email memorable!</div>
                             <div className="text-xs text-gray-500 line-clamp-2">
-                              Thank you for your interest in our animated email solutions...
+                              Thank you for your interest in our animated email solutions. We're excited to help you
+                              stand out...
                             </div>
                           </div>
                         </div>
                       </div>
 
-                      {/* Regular emails */}
-                      {[1, 2, 3].map((i) => (
-                        <div key={i} className="border-b pb-3 mb-3 last:mb-0 last:border-0">
-                          <div className="flex items-start">
-                            <div className="w-8 h-8 rounded-full bg-gray-200 mr-3 flex-shrink-0"></div>
-                            <div className="flex-1">
-                              <div className="flex justify-between mb-1">
-                                <div className="font-bold text-sm">Sender Name</div>
-                                <div className="text-xs text-gray-500">{`${i + 8}:${i * 15} AM`}</div>
-                              </div>
-                              <div className="text-sm font-medium mb-1">Email Subject Line</div>
-                              <div className="text-xs text-gray-500 line-clamp-1">
-                                Lorem ipsum dolor sit amet, consectetur adipiscing elit...
-                              </div>
+                      {/* Just one regular email - larger size */}
+                      <div className="pb-4 mb-4 border-b">
+                        <div className="flex items-start">
+                          <div className="w-12 h-12 rounded-full bg-gray-200 mr-3 flex-shrink-0"></div>
+                          <div className="flex-1">
+                            <div className="flex justify-between mb-1">
+                              <div className="font-bold text-sm">Sender Name</div>
+                              <div className="text-xs text-gray-500">9:15 AM</div>
+                            </div>
+                            <div className="text-sm font-medium mb-1">Email Subject Line</div>
+                            <div className="text-xs text-gray-500 line-clamp-2">
+                              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam in dui mauris...
                             </div>
                           </div>
                         </div>
-                      ))}
+                      </div>
+
+                      {/* Third email preview that gets cropped off */}
+                      <div className="pb-4 overflow-hidden" style={{ maxHeight: "60px" }}>
+                        <div className="flex items-start">
+                          <div className="w-12 h-12 rounded-full bg-gray-300 mr-3 flex-shrink-0"></div>
+                          <div className="flex-1">
+                            <div className="flex justify-between mb-1">
+                              <div className="font-bold text-sm">Another Sender</div>
+                              <div className="text-xs text-gray-500">8:45 AM</div>
+                            </div>
+                            <div className="text-sm font-medium mb-1">Meeting Reminder</div>
+                            <div className="text-xs text-gray-500 line-clamp-2">
+                              Just a reminder about our upcoming meeting scheduled for tomorrow at 2 PM. Please bring
+                              your...
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
 
                     <div className="bg-periwinkle/30 p-2 text-center text-xs text-english-violet font-medium">

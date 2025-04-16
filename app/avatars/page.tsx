@@ -39,13 +39,11 @@ export default function AvatarsPage() {
   const avatarFaqs = [
     {
       question: "Which email clients support animated avatars?",
-      answer:
-        "Currently, animated avatars are supported in Gmail, with other clients displaying a static brand logo.",
+      answer: "Currently, animated avatars are supported in Gmail, with other clients displaying a static brand logo.",
     },
     {
       question: "How do I install the animated avatar?",
-      answer:
-        "We provide simple, step-by-step instructions and hands-on support to ensure smooth installation.",
+      answer: "We provide simple, step-by-step instructions and hands-on support to ensure smooth installation.",
     },
     {
       question: "How many revisions are included?",
@@ -54,7 +52,8 @@ export default function AvatarsPage() {
     },
     {
       question: "Can I use the animations elsewhere?",
-      answer: "The Premium package includes animated files for additional use beyond email. Many clients repurpose animations for social media, websites, and more. Just ask for tips!",
+      answer:
+        "The Premium package includes animated files for additional use beyond email. Many clients repurpose animations for social media, websites, and more. Just ask for tips!",
     },
   ]
 
@@ -113,8 +112,10 @@ export default function AvatarsPage() {
         title="Choose Your Package"
         description={
           <div className="text-center">
-            <p className="mb-2">Every package includes installation and two revision rounds, ensuring your animation is flawlessly crafted. 
-            If additional revisions are needed, we’ll provide a personalized quote.</p>
+            <p className="mb-2">
+              Every package includes installation and two revision rounds, ensuring your animation is flawlessly
+              crafted. If additional revisions are needed, we’ll provide a personalized quote.
+            </p>
             <p className="text-sm text-gray-600 font-medium">
               <span className="inline-flex items-center px-2 py-1 rounded-full bg-red-100 text-red-700 text-xs mr-2">
                 Note

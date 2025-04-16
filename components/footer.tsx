@@ -11,15 +11,14 @@ export default function Footer() {
               <Image src="/logos/lumio-logo-white.png" alt="Lumio" width={160} height={53} className="object-contain" />
             </div>
             <p className="text-gray-300 mb-6 max-w-md">
-              Bring energy and the highest form of brand engagement into your emails with animated elements that make
-              you stand out.
+              Your audience deserves better emails. Start building unforgettable email experiences with Lumio.
             </p>
             <div className="space-y-2">
               <p className="text-gray-300">
-                <span className="font-medium">Email:</span> hello@lumio.com
+                <span className="font-medium">Email:</span> hello@golumio.co
               </p>
               <p className="text-gray-300">
-                <span className="font-medium">Phone:</span> (555) 123-4567
+                <span className="font-medium">Phone:</span> (616) 610-4464
               </p>
             </div>
           </div>

@@ -72,7 +72,8 @@ export default function SignaturesPage() {
     },
     {
       title: "Review & Approve",
-      description: "We’ll create one for you to review and approve before rolling it out with our simple installation process.",
+      description:
+        "We’ll create one for you to review and approve before rolling it out with our simple installation process.",
     },
   ]
 

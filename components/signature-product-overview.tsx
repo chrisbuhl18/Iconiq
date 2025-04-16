@@ -92,7 +92,7 @@ export default function SignatureProductOverview({
                         <span>(555) 123-4567</span>
                       </div>
 
-                      <div className="text-sm text-gray-500">Create memorable email experiences</div>
+                      <div className="text-sm text-gray-500">Make Memorable Emails</div>
                     </div>
                   </div>
                 </div>

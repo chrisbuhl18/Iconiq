@@ -106,7 +106,7 @@ export default function SignatureMockup({ className }: SignatureMockupProps) {
                             <span>(555) 123-4567</span>
                           </div>
 
-                          <div className="text-sm text-gray-500 mt-1">Create memorable email experiences</div>
+                          <div className="text-sm text-gray-500 mt-1">Make Memorable Emails</div>
                         </div>
                       </div>
                     </div>
