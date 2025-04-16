@@ -23,12 +23,21 @@ export const metadata: Metadata = {
     title: "Lumio | Animated Email Elements",
     description: "Bring your emails to life with animated elements that create memorable brand impressions.",
     siteName: "Lumio",
+    images: [
+      {
+        url: "/og-image.jpeg",
+        width: 1200,
+        height: 630,
+        alt: "Lumio | Animated Email Elements",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Lumio | Animated Email Elements",
     description: "Bring your emails to life with animated elements that create memorable brand impressions.",
     creator: "@lumio",
+    images: ["/og-image.jpeg"],
   },
   icons: {
     icon: [
