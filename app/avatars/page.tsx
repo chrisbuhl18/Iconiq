@@ -1,6 +1,6 @@
 import ProductLayout from "@/components/product-layout"
 import Hero from "@/components/hero"
-import ProductOverview from "@/components/product-overview"
+import AvatarProductOverview from "@/components/avatar-product-overview"
 import HowItWorks from "@/components/how-it-works"
 import AvatarPricingCalculator from "@/components/avatar-pricing-calculator"
 import FAQ from "@/components/faq"
@@ -70,7 +70,7 @@ export default function AvatarsPage() {
         image={<AvatarMockup />}
       />
 
-      <ProductOverview
+      <AvatarProductOverview
         title="Stand out in the sea of noise"
         description="First impressions matter. Our animated email avatars bring your brand to life right in your audience's inbox."
         features={[

@@ -1,14 +1,14 @@
 import { CheckCircle } from "lucide-react"
 import AnimatedAvatar from "./animated-avatar"
 
-interface ProductOverviewProps {
+interface AvatarProductOverviewProps {
   title: string
   description: string
   features: string[]
   image: string
 }
 
-export default function ProductOverview({ title, description, features, image }: ProductOverviewProps) {
+export default function AvatarProductOverview({ title, description, features, image }: AvatarProductOverviewProps) {
   return (
     <section id="overview" className="py-20 bg-white">
       <div className="container mx-auto px-4">
@@ -18,9 +18,9 @@ export default function ProductOverview({ title, description, features, image }:
               {/* Email app header */}
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
-                  <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
-                  <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
+                  <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                  <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                  <div className="w-3 h-3 bg-green-400 rounded-full"></div>
                 </div>
                 <div className="w-32 h-5 bg-gray-200 rounded"></div>
               </div>
@@ -49,11 +49,13 @@ export default function ProductOverview({ title, description, features, image }:
                       <div className="mr-3 flex-shrink-0">
                         <AnimatedAvatar size="sm" />
                       </div>
-                      <div>
-                        <div className="font-medium font-heading">Lumio Team</div>
-                        <div className="text-sm text-gray-500 flex items-center">
-                          <span className="truncate">Welcome to your animated...</span>
-                          <span className="ml-2 text-xs">10:30 AM</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-gray-700">Lumio Team</div>
+                        <div className="text-sm text-gray-500 flex">
+                          <span className="truncate max-w-full sm:max-w-[120px] md:max-w-[150px] lg:max-w-[200px] xl:max-w-[250px]">
+                            Welcome to your animated email solution...
+                          </span>
+                          <span className="text-xs ml-2 flex-shrink-0 hidden lg:inline">10:30 AM</span>
                         </div>
                       </div>
                     </div>
@@ -62,11 +64,13 @@ export default function ProductOverview({ title, description, features, image }:
                     {[1, 2, 3].map((i) => (
                       <div key={i} className="flex items-center p-3 bg-gray-100 rounded-lg">
                         <div className="w-10 h-10 bg-gray-300 rounded-full mr-3 flex-shrink-0"></div>
-                        <div>
+                        <div className="flex-1 min-w-0">
                           <div className="font-medium text-gray-700">Sender Name</div>
-                          <div className="text-sm text-gray-500 flex items-center">
-                            <span className="truncate">Email subject line preview text...</span>
-                            <span className="ml-2 text-xs">{`${i + 8}:${i * 15} AM`}</span>
+                          <div className="text-sm text-gray-500 flex">
+                            <span className="truncate max-w-full sm:max-w-[120px] md:max-w-[150px] lg:max-w-[200px] xl:max-w-[250px]">
+                              Email subject line preview text that could be quite long...
+                            </span>
+                            <span className="text-xs ml-2 flex-shrink-0 hidden lg:inline">{`${i + 8}:${i * 15} AM`}</span>
                           </div>
                         </div>
                       </div>

@@ -11,9 +11,6 @@ export default function SignatureMockup({ className }: SignatureMockupProps) {
     <div className={cn("relative pt-10", className)}>
       {/* Laptop frame */}
       <div className="w-[600px] mx-auto">
-        <div className="bg-gray-800 rounded-t-xl h-[20px] w-full flex items-center justify-center">
-          <div className="w-2 h-2 bg-gray-600 rounded-full mx-1"></div>
-        </div>
         <div className="bg-gray-800 h-[350px] rounded-xl p-3 shadow-xl">
           <div className="bg-white h-full w-full rounded-lg overflow-hidden relative">
             {/* Email client interface */}
@@ -53,7 +50,7 @@ export default function SignatureMockup({ className }: SignatureMockupProps) {
                         <div className="w-6 h-6 bg-gray-200 rounded-full mr-2"></div>
                         <div>
                           <div className="text-xs font-bold">Sarah Johnson</div>
-                          <div className="text-xs text-gray-500">sarah@emailtokens.com</div>
+                          <div className="text-xs text-gray-500">sarah@golumio.co</div>
                         </div>
                       </div>
                       <div className="text-xs text-gray-500">10:45 AM</div>
@@ -93,13 +90,13 @@ export default function SignatureMockup({ className }: SignatureMockupProps) {
                       </div>
 
                       {/* Right column with signature text */}
-                      <div className="flex flex-col space-y-1">
-                        <div className="font-bold text-english-violet text-sm mb-[0.275rem]">SARAH JOHNSON</div>
-                        <div className="text-xs text-gray-600">Marketing Director // Lumio</div>
+                      <div className="flex flex-col space-y-0.5">
+                        <div className="font-bold text-english-violet text-sm">SARAH JOHNSON</div>
+                        <div className="text-xs text-gray-600 -mt-0.5">Marketing Director // Lumio</div>
 
-                        <div className="flex items-center text-xs text-gray-600">
+                        <div className="flex items-center text-xs text-gray-600 mt-1">
                           <Mail className="h-3 w-3 mr-1" />
-                          <span>sarah@iconiq.com</span>
+                          <span>sarah@golumio.co</span>
                         </div>
 
                         <div className="flex items-center text-xs text-gray-600">

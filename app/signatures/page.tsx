@@ -1,6 +1,6 @@
 import ProductLayout from "@/components/product-layout"
 import Hero from "@/components/hero"
-import ProductOverview from "@/components/product-overview"
+import SignatureProductOverview from "@/components/signature-product-overview"
 import HowItWorks from "@/components/how-it-works"
 import SignaturePricingCalculator from "@/components/signature-pricing-calculator"
 import FAQ from "@/components/faq"
@@ -53,12 +53,7 @@ export default function SignaturesPage() {
   ]
 
   return (
-    <ProductLayout
-      productType="signatures"
-      bgColor="bg-misty-rose"
-      textColor="text-english-violet"
-      logoVariant="rose" // Add this line to pass the rose variant
-    >
+    <ProductLayout productType="signatures" bgColor="bg-misty-rose" textColor="text-english-violet" logoVariant="rose">
       <Hero
         title="Email Signatures that bring your brand to life"
         subtitle="Thousands of emails are sent by each user each year. Imagine the reach with each user having a unique animated brand token."
@@ -69,7 +64,7 @@ export default function SignaturesPage() {
         image={<SignatureMockup />}
       />
 
-      <ProductOverview
+      <SignatureProductOverview
         title="Thousands of impressions every year"
         description="Each team member sends thousands of emails annually. Imagine the reach with each user having a unique brand token."
         features={[
