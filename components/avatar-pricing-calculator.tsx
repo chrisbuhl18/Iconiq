@@ -427,7 +427,7 @@ export default function AvatarPricingCalculator({
             ) : (
               <h3 className="text-5xl font-bold text-english-violet">${totalPrice}</h3>
             )}
-            <p className="mt-3 text-english-violet/70">All packages include installation and 2 rounds of revision</p>
+            <p className="mt-3 text-english-violet/70">All packages include installation and 2 rounds of revision. If additional revisions are needed, we'll provide a personalized quote.</p>
           </div>
 
           <div className="mt-12 text-center">

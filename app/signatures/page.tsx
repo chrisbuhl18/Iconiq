@@ -59,11 +59,11 @@ export default function SignaturesPage() {
 
   const signatureSteps = [
     {
-      title: "Purchase & Submit",
-      description: "Choose your package and submit your brand assets through our form.",
+      title: "Select Your Package",
+      description: "Choose the plan that fits your team and upload your brand assets through our easy-to-use portal.",
     },
     {
-      title: "Template Selection",
+      title: "Pick Your Design",
       description: "Select from our signature templates or request a custom design.",
     },
     {
@@ -72,7 +72,7 @@ export default function SignaturesPage() {
     },
     {
       title: "Review & Approve",
-      description: "Review with one employee first, then we'll set up for your entire team.",
+      description: "We’ll create one for you to review and approve before rolling it out with our simple installation process.",
     },
   ]
 
@@ -80,7 +80,7 @@ export default function SignaturesPage() {
     <ProductLayout productType="signatures" bgColor="bg-misty-rose" textColor="text-english-violet" logoVariant="rose">
       <Hero
         title="Email Signatures that bring your brand to life"
-        subtitle="Thousands of emails are sent by each user each year. Imagine the reach with each user having a unique animated brand token."
+        subtitle="Every year, thousands of emails are sent—each one an opportunity to stand out. Imagine if every email included a unique animated brand token."
         bgColor="bg-misty-rose"
         textColor="text-english-violet"
         buttonText="See Pricing"
@@ -90,7 +90,7 @@ export default function SignaturesPage() {
 
       <SignatureProductOverview
         title="Thousands of impressions every year"
-        description="Each team member sends thousands of emails annually. Imagine the reach with each user having a unique brand token."
+        description="Your emails aren’t just messages; they’re opportunities to make an impression. Each custom animated signature features:"
         features={[
           "Works in Gmail and Outlook",
           "Animated logo with headshot transition",
@@ -105,7 +105,7 @@ export default function SignaturesPage() {
       {/* Client component that will fetch products on the client side */}
       <SignaturePricingCalculator
         title="Build Your Package"
-        description="All purchases include 2 rounds of revision, installation oversight, and step-by-step instructions."
+        description="Every package includes installation and two revision rounds, ensuring your animation is flawlessly crafted. If additional revisions are needed, we’ll provide a personalized quote."
         products={null} // Pass null, component will fetch on client side
       />
 

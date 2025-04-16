@@ -112,14 +112,38 @@ export default function SignatureProductOverview({
           {/* Text content - Second in DOM for desktop, but first on mobile */}
           <div className="flex-1 mb-8 md:mb-0 order-1 md:order-2">
             <h2 className="heading-md text-english-violet mb-6">{title}</h2>
-            <p className="text-lg mb-8 text-gray-700">{description}</p>
+            <p className="text-lg mb-8 text-gray-700">
+              Your emails aren't just messages; they're opportunities to make an impression. Each custom animated
+              signature features:
+            </p>
             <div className="space-y-4">
-              {features.map((feature, index) => (
-                <div key={index} className="flex items-start gap-3">
-                  <CheckCircle className="text-english-violet h-6 w-6 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700">{feature}</span>
-                </div>
-              ))}
+              <div className="flex items-start gap-3">
+                <CheckCircle className="text-english-violet h-6 w-6 flex-shrink-0 mt-0.5" />
+                <span className="text-gray-700">
+                  <span className="font-medium">Effortless Compatibility:</span> Works seamlessly with Gmail and
+                  Outlook, utilizing HTML-based functionality.
+                </span>
+              </div>
+              <div className="flex items-start gap-3">
+                <CheckCircle className="text-english-violet h-6 w-6 flex-shrink-0 mt-0.5" />
+                <span className="text-gray-700">
+                  <span className="font-medium">Dynamic Design:</span> Smooth logo-to-headshot animations for polished
+                  personal branding.
+                </span>
+              </div>
+              <div className="flex items-start gap-3">
+                <CheckCircle className="text-english-violet h-6 w-6 flex-shrink-0 mt-0.5" />
+                <span className="text-gray-700">
+                  <span className="font-medium">Team Cohesion:</span> Ensure consistent, branded communication across
+                  every email.
+                </span>
+              </div>
+              <div className="flex items-start gap-3">
+                <CheckCircle className="text-english-violet h-6 w-6 flex-shrink-0 mt-0.5" />
+                <span className="text-gray-700">
+                  <span className="font-medium">Hassle-Free Onboarding:</span> Easy setup and support for growing teams.
+                </span>
+              </div>
             </div>
           </div>
         </div>

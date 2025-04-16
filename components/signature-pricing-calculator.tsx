@@ -557,7 +557,7 @@ export default function SignaturePricingCalculator({
                   <div className="flex flex-col">
                     <div className="mb-4">
                       <Label className="font-bold text-lg mb-1 block">Number of Users</Label>
-                      <p className="text-sm text-gray-600 mb-3">Number of users who will use the animation</p>
+                      <p className="text-sm text-gray-600 mb-3">Add the number of users in your organization</p>
                       <div className="flex items-center space-x-2">
                         <span className="text-english-violet/70 font-medium">${USER_PRICE}/user</span>
                       </div>
@@ -621,7 +621,8 @@ export default function SignaturePricingCalculator({
                   <h3 className="text-4xl font-bold text-english-violet">${totalPrice}</h3>
                 )}
                 <p className="mt-3 text-sm text-english-violet/70">
-                  All packages include installation and 2 rounds of revision
+                  All packages include installation and 2 rounds of revision. If additional revisions are needed, we'll
+                  provide a personalized quote.
                 </p>
 
                 <Button

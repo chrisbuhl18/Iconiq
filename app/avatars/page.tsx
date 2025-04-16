@@ -40,39 +40,39 @@ export default function AvatarsPage() {
     {
       question: "Which email clients support animated avatars?",
       answer:
-        "Currently, animated avatars are only supported in Gmail. However, in other email clients, the first frame will display as a static image.",
+        "Currently, animated avatars are supported in Gmail, with other clients displaying a static brand logo.",
     },
     {
       question: "How do I install the animated avatar?",
       answer:
-        "Upon purchase, we'll provide step-by-step instructions and oversee the installation process to ensure everything works correctly.",
+        "We provide simple, step-by-step instructions and hands-on support to ensure smooth installation.",
     },
     {
       question: "How many revisions are included?",
       answer:
-        "All packages include 2 rounds of revisions to ensure you're completely satisfied with your animated avatar.",
+        "Each package includes up to two rounds of revisions to ensure your animation is just right. If additional revisions are needed, we’ll provide a personalized quote.",
     },
     {
       question: "Can I use the animations elsewhere?",
-      answer: "The Premium package includes animated files for additional use beyond email.",
+      answer: "The Premium package includes animated files for additional use beyond email. Many clients repurpose animations for social media, websites, and more. Just ask for tips!",
     },
   ]
 
   const avatarSteps = [
     {
-      title: "Purchase & Submit",
-      description: "Choose your package and submit your brand assets through our form.",
+      title: "Choose Your Package",
+      description: "Select the package that fits your needs and share your brand assets.",
     },
     {
       title: "Design & Animation",
-      description: "Our team creates your custom animated avatar based on your brand.",
+      description: "Our team craft animations uniquely tailored to your brand identity.",
     },
     {
       title: "Review & Revise",
-      description: "Review the animation and request up to 2 rounds of revisions.",
+      description: "Share your input with up to 2 rounds of revisions to ensure it’s just right.",
     },
     {
-      title: "Installation",
+      title: "Simple Installation",
       description: "We'll provide step-by-step instructions and oversee the installation process.",
     },
   ]
@@ -95,8 +95,8 @@ export default function AvatarsPage() {
       />
 
       <AvatarProductOverview
-        title="Stand out in the sea of noise"
-        description="First impressions matter. Our animated email avatars bring your brand to life right in your audience's inbox."
+        title="Cut Through the Inbox Clutter."
+        description="First impressions are everything. With Lumio's animated email avatars, your brand becomes the highlight of every inbox, leaving a professional and unforgettable mark."
         features={[
           "Perfect for Email Marketing",
           "Great for Announcements",
@@ -113,12 +113,13 @@ export default function AvatarsPage() {
         title="Choose Your Package"
         description={
           <div className="text-center">
-            <p className="mb-2">All purchases include installation and 2 rounds of revision.</p>
+            <p className="mb-2">Every package includes installation and two revision rounds, ensuring your animation is flawlessly crafted. 
+            If additional revisions are needed, we’ll provide a personalized quote.</p>
             <p className="text-sm text-gray-600 font-medium">
               <span className="inline-flex items-center px-2 py-1 rounded-full bg-red-100 text-red-700 text-xs mr-2">
                 Note
               </span>
-              Currently supported on Gmail only. Other email clients will display a static image.
+              Currently optimized for Gmail (other email clinets will display static brand logo).
             </p>
           </div>
         }

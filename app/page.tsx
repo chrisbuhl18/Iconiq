@@ -65,9 +65,9 @@ export default function Home() {
         {/* Hero Section - Desktop Version */}
         <div className="hidden md:block container mx-auto px-4 pt-20 pb-32 relative z-10">
           <div className="max-w-4xl mx-auto text-center mb-16">
-            <h1 className="heading-xl text-english-violet mb-6">Bring your emails to life with animation.</h1>
+            <h1 className="heading-xl text-english-violet mb-6">Make your emails memorable.</h1>
             <p className="text-xl md:text-2xl mb-10 text-english-violet/80 max-w-2xl mx-auto">
-              Stand out in crowded inboxes with animated email elements that create memorable brand impressions.
+              Capture attention, boost your brand, and stand out with animated email elements.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
@@ -126,7 +126,7 @@ export default function Home() {
                             <div className="font-bold text-sm">Lumio Team</div>
                             <div className="text-xs text-gray-500">10:30 AM</div>
                           </div>
-                          <div className="text-sm font-medium mb-1">Welcome to Email Tokens!</div>
+                          <div className="text-sm font-medium mb-1">Make your email memorable!</div>
                           <div className="text-xs text-gray-500 line-clamp-2">
                             Thank you for your interest in our animated email solutions...
                           </div>
@@ -302,7 +302,7 @@ export default function Home() {
         <div className="md:hidden container mx-auto px-4 pt-8 pb-16 relative z-10">
           <div className="max-w-4xl mx-auto text-center mb-8">
             <h1 className="text-4xl sm:text-5xl font-bold font-heading leading-tight mb-4 text-english-violet">
-              Bring your emails to life with animation.
+              Transform your emails into memorable experiences
             </h1>
             <p className="text-lg mb-6 text-english-violet/80 max-w-2xl mx-auto">
               Stand out in crowded inboxes with animated email elements that create memorable brand impressions.
@@ -366,7 +366,7 @@ export default function Home() {
                           <div className="font-bold text-xs">Lumio Team</div>
                           <div className="text-xs text-gray-500">10:30 AM</div>
                         </div>
-                        <div className="text-xs font-medium mb-0.5">Welcome to Email Tokens!</div>
+                        <div className="text-xs font-medium mb-0.5">Make your email memorable!</div>
                         <div className="text-xs text-gray-500 line-clamp-1">
                           Thank you for your interest in our animated email solutions...
                         </div>
@@ -475,11 +475,10 @@ export default function Home() {
       <section className="py-24 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="heading-lg text-english-violet mb-6">
-              Unlock the full potential of your email communications
-            </h2>
+            <h2 className="heading-lg text-english-violet mb-6">Maximize Your Email Impact.</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Make every email an opportunity to strengthen your brand and engage your audience
+              Every email is a chance to captivate your audience, build connections, and reinforce your brand. Lumio
+              makes it simple.
             </p>
           </div>
 
@@ -577,7 +576,7 @@ export default function Home() {
                               <div className="font-bold text-sm">Lumio Team</div>
                               <div className="text-xs text-gray-500">10:30 AM</div>
                             </div>
-                            <div className="text-sm font-medium mb-1">Welcome to Email Tokens!</div>
+                            <div className="text-sm font-medium mb-1">Make your email memorable!</div>
                             <div className="text-xs text-gray-500 line-clamp-2">
                               Thank you for your interest in our animated email solutions...
                             </div>
@@ -639,9 +638,9 @@ export default function Home() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-english-violet mb-1">Stand out in crowded inboxes</h3>
+                    <h3 className="text-xl font-bold text-english-violet mb-1">Be the Email They Open</h3>
                     <p className="text-gray-700">
-                      Animated elements catch the eye and make your emails more likely to be opened and read.
+                      Catch attention with animations that make your emails pop in cluttered inboxes.
                     </p>
                   </div>
                 </div>
@@ -662,9 +661,9 @@ export default function Home() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-english-violet mb-1">Reinforce brand recognition</h3>
+                    <h3 className="text-xl font-bold text-english-violet mb-1">Build Brand Loyalty</h3>
                     <p className="text-gray-700">
-                      Consistent, animated branding helps recipients instantly recognize your communications.
+                      Consistent, creative visuals make recipients recognize and trust your brand at just a glance.
                     </p>
                   </div>
                 </div>
@@ -685,9 +684,9 @@ export default function Home() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-english-violet mb-1">Increase engagement</h3>
+                    <h3 className="text-xl font-bold text-english-violet mb-1">Spark More Engagement </h3>
                     <p className="text-gray-700">
-                      Dynamic elements create a more engaging experience that encourages interaction with your content.
+                      Dynamic animations inspire clicks, replies, and conversations that connect you with your audience.
                     </p>
                   </div>
                 </div>
@@ -713,12 +712,10 @@ export default function Home() {
 
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-english-violet">
-              Ready to transform your email communications?
-            </h2>
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-english-violet">Make Every Email Count.</h2>
             <p className="text-xl text-english-violet/80 mb-10 max-w-2xl mx-auto">
-              Join hundreds of businesses already using our animated email solutions to stand out and make lasting
-              impressions.
+              Join businesses that know the power of memorable email communication. Start transforming your inbox
+              presence today.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
