@@ -305,10 +305,10 @@ export default function Home() {
         <div className="md:hidden container mx-auto px-4 pt-8 pb-16 relative z-10">
           <div className="max-w-4xl mx-auto text-center mb-8">
             <h1 className="text-4xl sm:text-5xl font-bold font-heading leading-tight mb-4 text-english-violet">
-              Transform your emails into memorable experiences
+              Make your emails memorable.
             </h1>
             <p className="text-lg mb-6 text-english-violet/80 max-w-2xl mx-auto">
-              Stand out in crowded inboxes with animated email elements that create memorable brand impressions.
+              Capture attention, boost your brand, and stand out with animated email elements.
             </p>
           </div>
 
