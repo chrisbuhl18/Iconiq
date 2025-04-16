@@ -6,9 +6,33 @@ import SignaturePricingCalculator from "@/components/signature-pricing-calculato
 import FAQ from "@/components/faq"
 import Footer from "@/components/footer"
 import SignatureMockup from "@/components/signature-mockup"
+import type { Metadata } from "next"
 
 // Skip server-side data fetching during build
 export const dynamic = "force-dynamic"
+
+export const metadata: Metadata = {
+  title: "Animated Email Signatures",
+  description: "Bring your brand to life with animated email signatures that make a lasting impression.",
+  openGraph: {
+    title: "Animated Email Signatures | Lumio",
+    description: "Bring your brand to life with animated email signatures that make a lasting impression.",
+    url: "https://lumio.vercel.app/signatures",
+    images: [
+      {
+        url: "/og-image-signatures.png",
+        width: 1200,
+        height: 630,
+        alt: "Lumio - Animated Email Signatures",
+      },
+    ],
+  },
+  twitter: {
+    title: "Animated Email Signatures | Lumio",
+    description: "Bring your brand to life with animated email signatures that make a lasting impression.",
+    images: ["/og-image-signatures.png"],
+  },
+}
 
 export default function SignaturesPage() {
   const signatureFaqs = [

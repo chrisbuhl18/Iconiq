@@ -7,9 +7,33 @@ import FAQ from "@/components/faq"
 import Footer from "@/components/footer"
 import AvatarMockup from "@/components/avatar-mockup"
 import GmailOnlyBadge from "@/components/gmail-only-badge"
+import type { Metadata } from "next"
 
 // Skip server-side data fetching during build
 export const dynamic = "force-dynamic"
+
+export const metadata: Metadata = {
+  title: "Animated Email Avatars",
+  description: "Add energy and pop when your email lands in your audience's inbox with animated email avatars.",
+  openGraph: {
+    title: "Animated Email Avatars | Lumio",
+    description: "Add energy and pop when your email lands in your audience's inbox with animated email avatars.",
+    url: "https://lumio.vercel.app/avatars",
+    images: [
+      {
+        url: "/og-image-avatars.png",
+        width: 1200,
+        height: 630,
+        alt: "Lumio - Animated Email Avatars",
+      },
+    ],
+  },
+  twitter: {
+    title: "Animated Email Avatars | Lumio",
+    description: "Add energy and pop when your email lands in your audience's inbox with animated email avatars.",
+    images: ["/og-image-avatars.png"],
+  },
+}
 
 export default function AvatarsPage() {
   const avatarFaqs = [

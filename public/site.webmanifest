@@ -1,0 +1,14 @@
+{
+  "name": "Lumio",
+  "short_name": "Lumio",
+  "icons": [
+    {
+      "src": "/favicon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#d5ccff",
+  "background_color": "#ffffff",
+  "display": "standalone"
+}
