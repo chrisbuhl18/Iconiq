@@ -1,13 +1,19 @@
-import { fetchFile } from "next/dist/server/lib/fetch-file"
+import { readFile } from "fs/promises"
+import { join } from "path"
 
 export async function GET() {
-  // Use the provided Open Graph image
-  const file = await fetchFile("public/og-image.jpeg")
+  try {
+    // Read the OG image file from the public directory
+    const file = await readFile(join(process.cwd(), "public/og-image.jpeg"))
 
-  return new Response(file, {
-    headers: {
-      "Content-Type": "image/jpeg",
-      "Cache-Control": "public, max-age=31536000, immutable",
-    },
-  })
+    return new Response(file, {
+      headers: {
+        "Content-Type": "image/jpeg",
+        "Cache-Control": "public, max-age=31536000, immutable",
+      },
+    })
+  } catch (error) {
+    console.error("Error serving OG image:", error)
+    return new Response("OG image not found", { status: 404 })
+  }
 }
