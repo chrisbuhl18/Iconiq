@@ -24,10 +24,12 @@ export default function ProductLayout({
       <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
+            {/* Logo - always on the left */}
             <Link href="/" className="flex items-center">
               <Logo size="medium" variant={logoVariant} />
             </Link>
 
+            {/* Desktop-only center navigation */}
             <div className="hidden md:flex items-center space-x-2 bg-gray-100 rounded-full p-1">
               <Link href="/avatars">
                 <div
@@ -53,29 +55,37 @@ export default function ProductLayout({
               </Link>
             </div>
 
-            <div className="flex items-center space-x-4">
+            {/* Mobile-only product toggle - right aligned */}
+            <div className="md:hidden flex items-center space-x-1 bg-gray-100 rounded-full p-1">
+              <Link href="/avatars">
+                <div
+                  className={cn(
+                    "px-3 py-1.5 text-sm rounded-full transition-all",
+                    productType === "avatars" ? "bg-periwinkle text-english-violet font-medium" : "hover:bg-gray-200",
+                  )}
+                >
+                  Avatars
+                </div>
+              </Link>
+              <Link href="/signatures">
+                <div
+                  className={cn(
+                    "px-3 py-1.5 text-sm rounded-full transition-all",
+                    productType === "signatures"
+                      ? "bg-misty-rose text-english-violet font-medium"
+                      : "hover:bg-gray-200",
+                  )}
+                >
+                  Signatures
+                </div>
+              </Link>
+            </div>
+
+            {/* Desktop-only right side elements */}
+            <div className="hidden md:flex items-center space-x-4">
               <Link href="#contact">
                 <Button className="bg-black hover:bg-black/90 text-white rounded-full">Contact</Button>
               </Link>
-
-              {/* Mobile menu button - only visible on small screens */}
-              <button className="md:hidden p-2 rounded-md hover:bg-gray-100">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <line x1="3" y1="12" x2="21" y2="12"></line>
-                  <line x1="3" y1="6" x2="21" y2="6"></line>
-                  <line x1="3" y1="18" x2="21" y2="18"></line>
-                </svg>
-              </button>
             </div>
           </div>
         </div>

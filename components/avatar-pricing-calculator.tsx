@@ -365,17 +365,6 @@ export default function AvatarPricingCalculator({
         )}
 
         <div className="max-w-4xl mx-auto">
-          {/* Total Price Display */}
-          <div className="bg-gradient-to-r from-periwinkle to-misty-rose p-8 rounded-xl mb-12 text-center shadow-md">
-            <span className="text-lg text-english-violet/80 block mb-2">Your Total</span>
-            {!selectedAnimation ? (
-              <h3 className="text-5xl font-bold text-english-violet">Select a Package</h3>
-            ) : (
-              <h3 className="text-5xl font-bold text-english-violet">${totalPrice}</h3>
-            )}
-            <p className="mt-3 text-english-violet/70">All packages include installation and 2 rounds of revision</p>
-          </div>
-
           {/* Animation Package Selection */}
           <div className="bg-seasalt p-8 rounded-xl">
             <h3 className="text-2xl font-bold text-english-violet mb-6 text-center">Animation Package</h3>
@@ -428,6 +417,17 @@ export default function AvatarPricingCalculator({
                   })}
               </div>
             </RadioGroup>
+          </div>
+
+          {/* Total Price Display */}
+          <div className="bg-gradient-to-r from-periwinkle to-misty-rose p-8 rounded-xl my-12 text-center shadow-md">
+            <span className="text-lg text-english-violet/80 block mb-2">Your Total</span>
+            {!selectedAnimation ? (
+              <h3 className="text-5xl font-bold text-english-violet">Select a Package</h3>
+            ) : (
+              <h3 className="text-5xl font-bold text-english-violet">${totalPrice}</h3>
+            )}
+            <p className="mt-3 text-english-violet/70">All packages include installation and 2 rounds of revision</p>
           </div>
 
           <div className="mt-12 text-center">

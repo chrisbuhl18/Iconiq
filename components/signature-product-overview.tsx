@@ -18,8 +18,9 @@ export default function SignatureProductOverview({
     <section id="overview" className="py-20 bg-white">
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row items-center gap-12">
-          <div className="flex-1">
-            <div className="bg-white rounded-lg shadow-lg p-6 max-w-xl mx-auto">
+          {/* Mockup - First in DOM for desktop */}
+          <div className="flex-1 md:block">
+            <div className="bg-white rounded-lg shadow-lg p-6">
               {/* Email app header */}
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-2">
@@ -52,46 +53,46 @@ export default function SignatureProductOverview({
                 </div>
 
                 {/* Email signature */}
-                <div className="border-t pt-3">
+                <div className="border-t pt-4">
                   <div className="flex items-start">
                     {/* Left column with animated headshot and social icons */}
-                    <div className="mr-4 flex-shrink-0 flex flex-col items-center">
+                    <div className="mr-5 flex-shrink-0 flex flex-col items-center">
                       {/* Animated headshot - same size as hero mockup */}
                       <SignatureHeadshot size="md" className="mb-3" />
 
                       {/* Social icons below the GIF */}
-                      <div className="flex items-center space-x-[1.8px]">
-                        <div className="w-4 h-4 bg-english-violet/80 rounded-full flex items-center justify-center">
-                          <Facebook className="h-2.5 w-2.5 text-white" />
+                      <div className="flex items-center space-x-2">
+                        <div className="w-5 h-5 bg-english-violet/80 rounded-full flex items-center justify-center">
+                          <Facebook className="h-3 w-3 text-white" />
                         </div>
-                        <div className="w-4 h-4 bg-english-violet/80 rounded-full flex items-center justify-center">
-                          <Linkedin className="h-2.5 w-2.5 text-white" />
+                        <div className="w-5 h-5 bg-english-violet/80 rounded-full flex items-center justify-center">
+                          <Linkedin className="h-3 w-3 text-white" />
                         </div>
-                        <div className="w-4 h-4 bg-english-violet/80 rounded-full flex items-center justify-center">
-                          <Instagram className="h-2.5 w-2.5 text-white" />
+                        <div className="w-5 h-5 bg-english-violet/80 rounded-full flex items-center justify-center">
+                          <Instagram className="h-3 w-3 text-white" />
                         </div>
-                        <div className="w-4 h-4 bg-english-violet/80 rounded-full flex items-center justify-center">
-                          <Twitter className="h-2.5 w-2.5 text-white" />
+                        <div className="w-5 h-5 bg-english-violet/80 rounded-full flex items-center justify-center">
+                          <Twitter className="h-3 w-3 text-white" />
                         </div>
                       </div>
                     </div>
 
                     {/* Right column with signature text */}
-                    <div className="flex flex-col space-y-0.5">
-                      <div className="font-bold text-english-violet text-sm">SARAH JOHNSON</div>
-                      <div className="text-xs text-gray-600 -mt-0.5">Marketing Director // Lumio</div>
+                    <div className="flex flex-col space-y-2">
+                      <div className="font-bold text-english-violet text-base">SARAH JOHNSON</div>
+                      <div className="text-sm text-gray-600">Marketing Director // Lumio</div>
 
-                      <div className="flex items-center text-xs text-gray-600 mt-1">
-                        <Mail className="h-3 w-3 mr-1" />
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Mail className="h-4 w-4 mr-2" />
                         <span>sarah@golumio.co</span>
                       </div>
 
-                      <div className="flex items-center text-xs text-gray-600">
-                        <Phone className="h-3 w-3 mr-1" />
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Phone className="h-4 w-4 mr-2" />
                         <span>(555) 123-4567</span>
                       </div>
 
-                      <div className="text-xs text-gray-500">Create memorable email experiences</div>
+                      <div className="text-sm text-gray-500">Create memorable email experiences</div>
                     </div>
                   </div>
                 </div>
@@ -107,7 +108,9 @@ export default function SignatureProductOverview({
               </div>
             </div>
           </div>
-          <div className="flex-1">
+
+          {/* Text content - Second in DOM for desktop */}
+          <div className="flex-1 mb-8 md:mb-0">
             <h2 className="heading-md text-english-violet mb-6">{title}</h2>
             <p className="text-lg mb-8 text-gray-700">{description}</p>
             <div className="space-y-4">

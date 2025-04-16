@@ -18,14 +18,16 @@ export default function Home() {
         {/* Navigation */}
         <nav className="container mx-auto px-4 py-4 relative z-10">
           <div className="flex items-center justify-between">
-            <div className="flex-1">
+            {/* Logo - always on the left */}
+            <div className="flex-shrink-0">
               <Link href="/">
                 <div style={{ transform: "scale(0.8)", transformOrigin: "left center" }}>
-                  <Logo size="large" variant="dark" /> {/* Using the dark variant here, 20% smaller */}
+                  <Logo size="large" variant="dark" />
                 </div>
               </Link>
             </div>
 
+            {/* Desktop-only center navigation */}
             <div className="hidden md:flex items-center space-x-2 bg-white/20 rounded-full p-1 absolute left-1/2 transform -translate-x-1/2">
               <Link href="/avatars">
                 <div className="px-4 py-2 rounded-full transition-all hover:bg-periwinkle hover:text-english-violet">
@@ -39,33 +41,29 @@ export default function Home() {
               </Link>
             </div>
 
-            <div className="flex-1 flex items-center justify-end space-x-4">
-              <Button className="bg-black hover:bg-black/90 text-white rounded-full px-6">Get Started</Button>
+            {/* Mobile-only product toggle - right aligned */}
+            <div className="md:hidden flex items-center space-x-1 bg-white/20 rounded-full p-1">
+              <Link href="/avatars">
+                <div className="px-3 py-1.5 text-sm rounded-full transition-all hover:bg-periwinkle hover:text-english-violet">
+                  Avatars
+                </div>
+              </Link>
+              <Link href="/signatures">
+                <div className="px-3 py-1.5 text-sm rounded-full transition-all hover:bg-misty-rose hover:text-english-violet">
+                  Signatures
+                </div>
+              </Link>
+            </div>
 
-              {/* Mobile menu button - only visible on small screens */}
-              <button className="md:hidden p-2 rounded-md hover:bg-white/20">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <line x1="3" y1="12" x2="21" y2="12"></line>
-                  <line x1="3" y1="6" x2="21" y2="6"></line>
-                  <line x1="3" y1="18" x2="21" y2="18"></line>
-                </svg>
-              </button>
+            {/* Desktop-only right side elements */}
+            <div className="hidden md:flex items-center justify-end space-x-4">
+              <Button className="bg-black hover:bg-black/90 text-white rounded-full px-6">Get Started</Button>
             </div>
           </div>
         </nav>
 
-        {/* Hero Section */}
-        <div className="container mx-auto px-4 pt-20 pb-32 relative z-10">
+        {/* Hero Section - Desktop Version */}
+        <div className="hidden md:block container mx-auto px-4 pt-20 pb-32 relative z-10">
           <div className="max-w-4xl mx-auto text-center mb-16">
             <h1 className="heading-xl text-english-violet mb-6">Bring your emails to life with animation.</h1>
             <p className="text-xl md:text-2xl mb-10 text-english-violet/80 max-w-2xl mx-auto">
@@ -89,9 +87,9 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Product Showcase */}
+          {/* Product Showcase - Desktop */}
           <div className="relative mt-8">
-            <div className="flex flex-col md:flex-row justify-center items-center gap-8 md:gap-16">
+            <div className="flex flex-row justify-center items-center gap-16">
               {/* Avatar mockup - browser style instead of phone */}
               <Link href="/avatars" className="relative transform hover:scale-105 transition-transform duration-300">
                 {/* Decorative elements - moved behind and scaled up 30% */}
@@ -299,8 +297,180 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        {/* Hero Section - Mobile Version */}
+        <div className="md:hidden container mx-auto px-4 pt-8 pb-16 relative z-10">
+          <div className="max-w-4xl mx-auto text-center mb-8">
+            <h1 className="text-4xl sm:text-5xl font-bold font-heading leading-tight mb-4 text-english-violet">
+              Bring your emails to life with animation.
+            </h1>
+            <p className="text-lg mb-6 text-english-violet/80 max-w-2xl mx-auto">
+              Stand out in crowded inboxes with animated email elements that create memorable brand impressions.
+            </p>
+
+            <div className="flex flex-col items-center justify-center gap-3 mb-8">
+              <Link href="/avatars">
+                <Button className="bg-english-violet hover:bg-english-violet/90 text-white rounded-full px-6 py-4 text-base">
+                  Explore Products <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+              <Link href="#contact">
+                <Button
+                  variant="outline"
+                  className="border-english-violet text-english-violet rounded-full px-6 py-4 text-base"
+                >
+                  Contact Us
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          {/* Product Showcase - Mobile */}
+          <div className="flex flex-col items-center gap-8">
+            {/* Avatar mockup - mobile optimized */}
+            <Link
+              href="/avatars"
+              className="relative transform hover:scale-105 transition-transform duration-300 w-full max-w-[280px]"
+            >
+              {/* Smaller decorative elements for mobile */}
+              <div
+                className="absolute -bottom-4 -right-4 w-16 h-16 bg-periwinkle rounded-full opacity-70"
+                style={{ zIndex: 0 }}
+              ></div>
+              <div
+                className="absolute -top-4 -left-4 w-12 h-12 bg-champagne rounded-full opacity-70"
+                style={{ zIndex: 0 }}
+              ></div>
+
+              <div className="w-full bg-white rounded-xl shadow-xl overflow-hidden relative z-10">
+                {/* Browser header */}
+                <div className="bg-periwinkle p-2 flex items-center">
+                  <div className="flex space-x-2">
+                    <div className="w-2 h-2 bg-red-400 rounded-full"></div>
+                    <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  </div>
+                  <div className="mx-auto bg-white/20 rounded-full px-3 py-0.5 text-xs text-white">Gmail</div>
+                </div>
+
+                {/* Email content - simplified for mobile */}
+                <div className="p-3">
+                  {/* Email with animated avatar */}
+                  <div className="border-b pb-2 mb-2">
+                    <div className="flex items-start">
+                      <div className="mr-2 flex-shrink-0">
+                        <AnimatedAvatar size="xs" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex justify-between mb-0.5">
+                          <div className="font-bold text-xs">Lumio Team</div>
+                          <div className="text-xs text-gray-500">10:30 AM</div>
+                        </div>
+                        <div className="text-xs font-medium mb-0.5">Welcome to Email Tokens!</div>
+                        <div className="text-xs text-gray-500 line-clamp-1">
+                          Thank you for your interest in our animated email solutions...
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Just one regular email for mobile */}
+                  <div className="border-b pb-2 mb-2">
+                    <div className="flex items-start">
+                      <div className="w-6 h-6 rounded-full bg-gray-200 mr-2 flex-shrink-0"></div>
+                      <div className="flex-1">
+                        <div className="flex justify-between mb-0.5">
+                          <div className="font-bold text-xs">Sender Name</div>
+                          <div className="text-xs text-gray-500">9:15 AM</div>
+                        </div>
+                        <div className="text-xs font-medium mb-0.5">Email Subject Line</div>
+                        <div className="text-xs text-gray-500 line-clamp-1">Lorem ipsum dolor sit amet...</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-periwinkle/30 p-1 text-center text-xs text-english-violet font-medium">
+                  Animated Email Avatars
+                </div>
+              </div>
+            </Link>
+
+            {/* Signature mockup - mobile optimized */}
+            <Link
+              href="/signatures"
+              className="relative transform hover:scale-105 transition-transform duration-300 w-full max-w-[280px]"
+            >
+              {/* Smaller decorative elements for mobile */}
+              <div
+                className="absolute -bottom-4 -left-4 w-16 h-16 bg-misty-rose rounded-full opacity-70"
+                style={{ zIndex: 0 }}
+              ></div>
+              <div
+                className="absolute -top-4 -right-4 w-12 h-12 bg-champagne rounded-full opacity-70"
+                style={{ zIndex: 0 }}
+              ></div>
+
+              <div className="w-full bg-white rounded-xl shadow-xl overflow-hidden relative z-10">
+                {/* Browser header */}
+                <div className="bg-misty-rose p-2 flex items-center">
+                  <div className="flex space-x-2">
+                    <div className="w-2 h-2 bg-red-400 rounded-full"></div>
+                    <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  </div>
+                  <div className="mx-auto bg-white/20 rounded-full px-3 py-0.5 text-xs text-english-violet">
+                    Email Compose
+                  </div>
+                </div>
+
+                {/* Email compose with signature - simplified for mobile */}
+                <div className="p-3">
+                  <div className="mb-1">
+                    <div className="flex items-center space-x-1 mb-1">
+                      <div className="text-xs font-medium text-gray-500">To:</div>
+                      <div className="text-xs">client@example.com</div>
+                    </div>
+                    <div className="flex items-center space-x-1 mb-1">
+                      <div className="text-xs font-medium text-gray-500">Subject:</div>
+                      <div className="text-xs font-medium">Project Proposal</div>
+                    </div>
+                  </div>
+
+                  <div className="text-xs mb-2">
+                    <p className="mb-1">Hi there,</p>
+                    <p>Thanks for your interest!</p>
+                  </div>
+
+                  {/* Email signature - simplified for mobile */}
+                  <div className="border-t pt-2">
+                    <div className="flex items-start">
+                      <div className="mr-2 flex-shrink-0">
+                        <SignatureHeadshot size="sm" />
+                      </div>
+
+                      <div className="flex-1">
+                        <div className="font-bold text-english-violet text-xs">SARAH JOHNSON</div>
+                        <div className="text-xs text-gray-600">Marketing Director // Lumio</div>
+                        <div className="flex items-center text-xs text-gray-600">
+                          <Mail className="h-3 w-3 mr-1" />
+                          <span>sarah@lumio.com</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-misty-rose/30 p-1 text-center text-xs text-english-violet font-medium">
+                  Animated Email Signatures
+                </div>
+              </div>
+            </Link>
+          </div>
+        </div>
       </main>
 
+      {/* Rest of the page content remains unchanged */}
       {/* Feature Cards Section */}
       <section className="py-24 bg-white">
         <div className="container mx-auto px-4">

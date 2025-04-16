@@ -462,16 +462,18 @@ export default function SignaturePricingCalculator({
   }
 
   return (
-    <section id="pricing" className="py-20 bg-white">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="heading-md text-english-violet mb-4">{title}</h2>
-          <div className="text-lg text-gray-700 max-w-2xl mx-auto">{description}</div>
+    <section id="pricing" className="py-12 md:py-20 bg-white">
+      <div className="container mx-auto px-4 sm:px-6">
+        <div className="text-center mb-8 md:mb-12">
+          <h2 className="heading-md text-english-violet mb-3 md:mb-4 text-3xl md:text-4xl">{title}</h2>
+          <div className="text-base md:text-lg text-gray-700 max-w-xs sm:max-w-lg md:max-w-2xl mx-auto">
+            {description}
+          </div>
         </div>
 
         {error && (
-          <div className="max-w-4xl mx-auto mb-8">
-            <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded relative">
+          <div className="max-w-full sm:max-w-4xl mx-auto mb-6 md:mb-8">
+            <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-3 py-2 md:px-4 md:py-3 rounded relative text-sm md:text-base">
               <strong className="font-bold">Note:</strong>
               <span className="block sm:inline"> {error}</span>
             </div>
@@ -479,20 +481,20 @@ export default function SignaturePricingCalculator({
         )}
 
         {usingFallback && !error && (
-          <div className="max-w-4xl mx-auto mb-8">
-            <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded relative">
+          <div className="max-w-full sm:max-w-4xl mx-auto mb-6 md:mb-8">
+            <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-3 py-2 md:px-4 md:py-3 rounded relative text-sm md:text-base">
               <strong className="font-bold">Note:</strong>
               <span className="block sm:inline"> Using fallback pricing data. Checkout functionality is limited.</span>
             </div>
           </div>
         )}
 
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-full sm:max-w-2xl md:max-w-4xl mx-auto">
           {/* Pricing Options */}
           <div className="grid grid-cols-1 gap-8">
             {/* Animation Package */}
             <div className="bg-seasalt p-8 rounded-xl">
-              <h3 className="text-2xl font-bold text-english-violet mb-6 text-center">Animation Package</h3>
+              <h3 className="text-2xl font-bold text-english-violet mb-6 text-center">Select Animation Package</h3>
               <RadioGroup value={selectedAnimation} onValueChange={setSelectedAnimation} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* Sort and map the packages to ensure Starter, Essential, Premium order */}
@@ -548,7 +550,7 @@ export default function SignaturePricingCalculator({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* User Count */}
               <div className="bg-seasalt p-6 rounded-xl">
-                <h3 className="text-xl font-bold text-english-violet mb-4">User Count</h3>
+                <h3 className="text-2xl font-bold text-english-violet mb-6 text-center md:text-left">Select User Count</h3>
                 <div className="rounded-xl border p-6 bg-white shadow-md">
                   <div className="flex flex-col">
                     <div className="mb-4">
