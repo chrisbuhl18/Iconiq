@@ -197,8 +197,9 @@ export default function AvatarPricingCalculator({
 
         // Use fallback data
         setAnimationPackages(sortedFallbackOptions)
-        setSelectedAnimation(sortedFallbackOptions[0].id)
-        setTotalPrice(sortedFallbackOptions[0].price)
+        // Remove default selection
+        // setSelectedAnimation(sortedFallbackOptions[0].id)
+        // setTotalPrice(sortedFallbackOptions[0].price)
       } finally {
         setLoading(false)
       }
@@ -241,8 +242,9 @@ export default function AvatarPricingCalculator({
       })
 
       setAnimationPackages(formattedPackages)
-      setSelectedAnimation(formattedPackages[0].id)
-      setTotalPrice(formattedPackages[0].price)
+      // Remove default selection
+      // setSelectedAnimation(formattedPackages[0].id)
+      // setTotalPrice(formattedPackages[0].price)
     } catch (error) {
       console.error("Error processing products:", error)
       setError(`Error: ${error instanceof Error ? error.message : String(error)}`)
@@ -256,8 +258,9 @@ export default function AvatarPricingCalculator({
       // Use fallback data
       setUsingFallback(true)
       setAnimationPackages(sortedFallbackOptions)
-      setSelectedAnimation(sortedFallbackOptions[0].id)
-      setTotalPrice(sortedFallbackOptions[0].price)
+      // Remove default selection
+      // setSelectedAnimation(sortedFallbackOptions[0].id)
+      // setTotalPrice(sortedFallbackOptions[0].price)
     }
   }, [products, usingFallback])
 
@@ -266,6 +269,8 @@ export default function AvatarPricingCalculator({
     const selectedPackage = animationPackages.find((p) => p.id === selectedAnimation)
     if (selectedPackage) {
       setTotalPrice(selectedPackage.price)
+    } else {
+      setTotalPrice(0)
     }
   }, [selectedAnimation, animationPackages])
 
@@ -363,7 +368,11 @@ export default function AvatarPricingCalculator({
           {/* Total Price Display */}
           <div className="bg-gradient-to-r from-periwinkle to-misty-rose p-8 rounded-xl mb-12 text-center shadow-md">
             <span className="text-lg text-english-violet/80 block mb-2">Your Total</span>
-            <h3 className="text-5xl font-bold text-english-violet">${totalPrice}</h3>
+            {!selectedAnimation ? (
+              <h3 className="text-5xl font-bold text-english-violet">Select a Package</h3>
+            ) : (
+              <h3 className="text-5xl font-bold text-english-violet">${totalPrice}</h3>
+            )}
             <p className="mt-3 text-english-violet/70">All packages include installation and 2 rounds of revision</p>
           </div>
 
@@ -425,9 +434,9 @@ export default function AvatarPricingCalculator({
             <Button
               className="bg-english-violet hover:bg-english-violet/90 text-white px-8 py-6 text-lg rounded-full"
               onClick={handleGetStarted}
-              disabled={isSubmitting}
+              disabled={isSubmitting || !selectedAnimation}
             >
-              {isSubmitting ? "Processing..." : "Get Started"}
+              {isSubmitting ? "Processing..." : selectedAnimation ? "Get Started" : "Select a Package"}
             </Button>
           </div>
         </div>

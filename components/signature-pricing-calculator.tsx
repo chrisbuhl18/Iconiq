@@ -203,8 +203,9 @@ export default function SignaturePricingCalculator({
         // Use fallback data
         setUsingFallback(true)
         setAnimationPackages(sortedFallbackOptions)
-        setSelectedAnimation(sortedFallbackOptions[0].id)
-        setTotalPrice(sortedFallbackOptions[0].price + USER_PRICE) // Base price + 1 user
+        // Remove default selection
+        // setSelectedAnimation(sortedFallbackOptions[0].id)
+        // setTotalPrice(sortedFallbackOptions[0].price + USER_PRICE) // Base price + 1 user
       } finally {
         setLoading(false)
       }
@@ -237,8 +238,9 @@ export default function SignaturePricingCalculator({
       })
 
       setAnimationPackages(formattedPackages)
-      setSelectedAnimation(formattedPackages[0].id)
-      setTotalPrice(formattedPackages[0].price + USER_PRICE) // Base price + 1 user
+      // Remove default selection
+      // setSelectedAnimation(formattedPackages[0].id)
+      // setTotalPrice(formattedPackages[0].price + USER_PRICE) // Base price + 1 user
     } catch (error) {
       console.error("Error processing products:", error)
       setError(`Error: ${error instanceof Error ? error.message : String(error)}`)
@@ -252,15 +254,19 @@ export default function SignaturePricingCalculator({
       // Use fallback data
       setUsingFallback(true)
       setAnimationPackages(sortedFallbackOptions)
-      setSelectedAnimation(sortedFallbackOptions[0].id)
-      setTotalPrice(sortedFallbackOptions[0].price + USER_PRICE) // Base price + 1 user
+      // Remove default selection
+      // setSelectedAnimation(sortedFallbackOptions[0].id)
+      // setTotalPrice(sortedFallbackOptions[0].price + USER_PRICE) // Base price + 1 user
     }
   }, [products, usingFallback])
 
   // Calculate total price
   useEffect(() => {
     const selectedPackage = animationPackages.find((p) => p.id === selectedAnimation)
-    if (!selectedPackage) return
+    if (!selectedPackage) {
+      setTotalPrice(0)
+      return
+    }
 
     if (userCount > 50) {
       setIsCustomPricing(true)
@@ -482,157 +488,147 @@ export default function SignaturePricingCalculator({
         )}
 
         <div className="max-w-4xl mx-auto">
-          {/* Total Price Display */}
-          <div className="bg-gradient-to-r from-periwinkle to-misty-rose p-8 rounded-xl mb-12 text-center shadow-md">
-            <span className="text-lg text-english-violet/80 block mb-2">Your Total</span>
-            {isCustomPricing ? (
-              <h3 className="text-5xl font-bold text-english-violet">Custom Quote</h3>
-            ) : (
-              <h3 className="text-5xl font-bold text-english-violet">${totalPrice}</h3>
-            )}
-            <p className="mt-3 text-english-violet/70">All packages include installation and 2 rounds of revision</p>
-          </div>
-
           {/* Pricing Options */}
           <div className="grid grid-cols-1 gap-8">
-            {/* Animation Package and User Count in a vertically stacked layout */}
+            {/* Animation Package */}
             <div className="bg-seasalt p-8 rounded-xl">
-              <div className="grid grid-cols-1 gap-8">
-                {/* Animation Package */}
-                <div>
-                  <h3 className="text-2xl font-bold text-english-violet mb-6 text-center">Animation Package</h3>
-                  <RadioGroup value={selectedAnimation} onValueChange={setSelectedAnimation} className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {/* Sort and map the packages to ensure Starter, Essential, Premium order */}
-                      {[...animationPackages]
-                        .sort((a, b) => {
-                          // Determine package type based on price or other characteristics
-                          const getPackageType = (pkg: PricingOption) => {
-                            if (pkg.price <= 950) return "Starter"
-                            if (pkg.price <= 1450) return "Essential"
-                            return "Premium"
-                          }
+              <h3 className="text-2xl font-bold text-english-violet mb-6 text-center">Animation Package</h3>
+              <RadioGroup value={selectedAnimation} onValueChange={setSelectedAnimation} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Sort and map the packages to ensure Starter, Essential, Premium order */}
+                  {[...animationPackages]
+                    .sort((a, b) => {
+                      // Determine package type based on price or other characteristics
+                      const getPackageType = (pkg: PricingOption) => {
+                        if (pkg.price <= 950) return "Starter"
+                        if (pkg.price <= 1450) return "Essential"
+                        return "Premium"
+                      }
 
-                          // Order: Starter (1), Essential (2), Premium (3)
-                          const order = { Starter: 1, Essential: 2, Premium: 3 }
-                          return order[getPackageType(a)] - order[getPackageType(b)]
-                        })
-                        .map((option) => {
-                          // Determine the display title based on price range
-                          let displayTitle = option.name
-                          if (option.price <= 950) displayTitle = "Starter"
-                          else if (option.price <= 1450) displayTitle = "Essential"
-                          else displayTitle = "Premium"
+                      // Order: Starter (1), Essential (2), Premium (3)
+                      const order = { Starter: 1, Essential: 2, Premium: 3 }
+                      return order[getPackageType(a)] - order[getPackageType(b)]
+                    })
+                    .map((option) => {
+                      // Determine the display title based on price range
+                      let displayTitle = option.name
+                      if (option.price <= 950) displayTitle = "Starter"
+                      else if (option.price <= 1450) displayTitle = "Essential"
+                      else displayTitle = "Premium"
 
-                          return (
-                            <div
-                              key={option.id}
-                              className={cn(
-                                "flex flex-col rounded-xl border p-6 cursor-pointer transition-all",
-                                selectedAnimation === option.id
-                                  ? "border-english-violet bg-white shadow-md"
-                                  : "border-transparent bg-white/50 hover:bg-white hover:shadow-sm",
-                              )}
-                              onClick={() => setSelectedAnimation(option.id)}
-                            >
-                              <div className="flex items-start mb-4">
-                                <RadioGroupItem value={option.id} id={`animation-${option.id}`} className="mt-1" />
-                                <div className="ml-3">
-                                  <Label
-                                    htmlFor={`animation-${option.id}`}
-                                    className="font-bold text-lg cursor-pointer"
-                                  >
-                                    {displayTitle}
-                                  </Label>
-                                  <p className="text-english-violet/70 font-medium text-lg">${option.price}</p>
-                                </div>
-                              </div>
-                              <p className="text-sm text-gray-600 flex-grow">{option.description}</p>
+                      return (
+                        <div
+                          key={option.id}
+                          className={cn(
+                            "flex flex-col rounded-xl border p-6 cursor-pointer transition-all",
+                            selectedAnimation === option.id
+                              ? "border-english-violet bg-white shadow-md"
+                              : "border-transparent bg-white/50 hover:bg-white hover:shadow-sm",
+                          )}
+                          onClick={() => setSelectedAnimation(option.id)}
+                        >
+                          <div className="flex items-start mb-4">
+                            <RadioGroupItem value={option.id} id={`animation-${option.id}`} className="mt-1" />
+                            <div className="ml-3">
+                              <Label htmlFor={`animation-${option.id}`} className="font-bold text-lg cursor-pointer">
+                                {displayTitle}
+                              </Label>
+                              <p className="text-english-violet/70 font-medium text-lg">${option.price}</p>
                             </div>
-                          )
-                        })}
-                    </div>
-                  </RadioGroup>
-                </div>
-
-                {/* User Count */}
-                <div>
-                  <h3 className="text-2xl font-bold text-english-violet mb-6 text-center">User Count</h3>
-                  <div className="rounded-xl border p-6 bg-white shadow-md">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-                      {/* Left side - Description */}
-                      <div className="md:w-1/2">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Label className="font-bold text-lg">User Count</Label>
-                          <span className="text-english-violet/70 font-medium text-lg">${USER_PRICE}/user</span>
-                        </div>
-                        <p className="text-sm text-gray-600">Number of users who will use the animation</p>
-
-                        {userCount > 50 ? (
-                          <div className="mt-4 py-2">
-                            <p className="font-medium text-english-violet">Custom Pricing Available</p>
-                            <p className="text-sm text-gray-600 mt-1">Contact us for a custom quote for your team</p>
                           </div>
-                        ) : (
-                          <p className="mt-4 font-medium text-english-violet/70">Subtotal: ${USER_PRICE * userCount}</p>
-                        )}
-                      </div>
-
-                      {/* Right side - Input controls */}
-                      <div className="md:w-1/2">
-                        <Label htmlFor="user-count" className="text-sm font-medium block mb-2">
-                          Number of Users
-                        </Label>
-                        <div className="flex items-center space-x-4">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => setUserCount(Math.max(1, userCount - 1))}
-                            className="h-10 w-10 p-0 rounded-md"
-                          >
-                            -
-                          </Button>
-                          <Input
-                            id="user-count"
-                            type="number"
-                            min="1"
-                            max={100}
-                            value={userCount}
-                            onChange={(e) => {
-                              const value = Number.parseInt(e.target.value)
-                              if (!isNaN(value)) {
-                                setUserCount(Math.max(1, value))
-                              }
-                            }}
-                            className="h-10 text-center"
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => {
-                              setUserCount(userCount + 1)
-                            }}
-                            className="h-10 w-10 p-0 rounded-md"
-                          >
-                            +
-                          </Button>
+                          <p className="text-sm text-gray-600 flex-grow">{option.description}</p>
                         </div>
+                      )
+                    })}
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* User Count and Total Price side by side */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* User Count */}
+              <div className="bg-seasalt p-6 rounded-xl">
+                <h3 className="text-xl font-bold text-english-violet mb-4">User Count</h3>
+                <div className="rounded-xl border p-6 bg-white shadow-md">
+                  <div className="flex flex-col">
+                    <div className="mb-4">
+                      <Label className="font-bold text-lg mb-1 block">Number of Users</Label>
+                      <p className="text-sm text-gray-600 mb-3">Number of users who will use the animation</p>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-english-violet/70 font-medium">${USER_PRICE}/user</span>
                       </div>
                     </div>
+
+                    <div className="flex items-center space-x-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setUserCount(Math.max(1, userCount - 1))}
+                        className="h-10 w-10 p-0 rounded-md"
+                      >
+                        -
+                      </Button>
+                      <Input
+                        id="user-count"
+                        type="number"
+                        min="1"
+                        max={100}
+                        value={userCount}
+                        onChange={(e) => {
+                          const value = Number.parseInt(e.target.value)
+                          if (!isNaN(value)) {
+                            setUserCount(Math.max(1, value))
+                          }
+                        }}
+                        className="h-10 text-center"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setUserCount(userCount + 1)
+                        }}
+                        className="h-10 w-10 p-0 rounded-md"
+                      >
+                        +
+                      </Button>
+                    </div>
+
+                    {userCount > 50 ? (
+                      <div className="mt-4 py-2">
+                        <p className="font-medium text-english-violet">Custom Pricing Available</p>
+                        <p className="text-sm text-gray-600 mt-1">Contact us for a custom quote for your team</p>
+                      </div>
+                    ) : (
+                      <p className="mt-4 font-medium text-english-violet/70">Subtotal: ${USER_PRICE * userCount}</p>
+                    )}
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <div className="mt-12 text-center">
-            <Button
-              className="bg-english-violet hover:bg-english-violet/90 text-white px-8 py-6 text-lg rounded-full"
-              onClick={handleGetStarted}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Processing..." : "Get Started"}
-            </Button>
+              {/* Total Price Display - Smaller version */}
+              <div className="bg-gradient-to-r from-periwinkle to-misty-rose p-6 rounded-xl shadow-md flex flex-col justify-center">
+                <span className="text-lg text-english-violet/80 block mb-2">Your Total</span>
+                {!selectedAnimation ? (
+                  <h3 className="text-4xl font-bold text-english-violet">Select a Package</h3>
+                ) : isCustomPricing ? (
+                  <h3 className="text-4xl font-bold text-english-violet">Custom Quote</h3>
+                ) : (
+                  <h3 className="text-4xl font-bold text-english-violet">${totalPrice}</h3>
+                )}
+                <p className="mt-3 text-sm text-english-violet/70">
+                  All packages include installation and 2 rounds of revision
+                </p>
+
+                <Button
+                  className="bg-english-violet hover:bg-english-violet/90 text-white px-6 py-4 text-lg rounded-full mt-4"
+                  onClick={handleGetStarted}
+                  disabled={isSubmitting || !selectedAnimation}
+                >
+                  {isSubmitting ? "Processing..." : selectedAnimation ? "Get Started" : "Select a Package"}
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
