@@ -2,17 +2,18 @@
 
 /**
  * @component SignaturePricingCalculator
- * @version 1.1.0
+ * @version 1.2.0
  * @description
  * Pricing calculator for email signatures that handles variant selection based on user count.
  *
  * CRITICAL COMPONENT: This component directly impacts checkout functionality and revenue.
  * Any changes should be thoroughly tested with actual Shopify variants.
  *
- * @lastModified 2023-04-15
+ * @lastModified 2023-04-16
  * @changelog
  * - 1.0.0: Initial implementation
  * - 1.1.0: Fixed variant selection to correctly match user count with Shopify variants
+ * - 1.2.0: Updated display title logic to use product ID/handle instead of price ranges
  */
 
 import { useState, useEffect } from "react"
@@ -24,12 +25,14 @@ import { cn } from "@/lib/utils"
 import type { ReactNode } from "react"
 import type { ShopifyProduct } from "@/lib/shopify"
 import { createCart } from "@/lib/shopify"
+import AnimationExamples from "@/components/animation-examples"
 
 interface PricingOption {
   id: string
   name: string
   description: string
   price: number
+  handle?: string
 }
 
 interface SignaturePricingCalculatorProps {
@@ -46,6 +49,7 @@ const FALLBACK_OPTIONS = [
     description:
       "Pre-designed signature animation with your brand colors. Perfect for teams looking for a professional animated presence without custom design work.",
     price: 950,
+    handle: "email-signature-starter",
   },
   {
     id: "essential",
@@ -53,6 +57,7 @@ const FALLBACK_OPTIONS = [
     description:
       "Tailored signature animation designed specifically for your brand. Includes custom movement patterns and transitions that reflect your brand personality.",
     price: 1450,
+    handle: "email-signature-custom",
   },
   {
     id: "premium",
@@ -60,6 +65,7 @@ const FALLBACK_OPTIONS = [
     description:
       "Fully bespoke signature animation with advanced effects, multiple elements, and premium transitions. Our highest tier for brands that want to make a lasting impression.",
     price: 2000,
+    handle: "email-signature-premium",
   },
 ]
 
@@ -100,43 +106,43 @@ export default function SignaturePricingCalculator({
           },
           body: JSON.stringify({
             query: `
-              query GetProductsByCollection($title: String!) {
-                collections(first: 1, query: $title) {
-                  edges {
-                    node {
-                      title
-                      products(first: 10) {
-                        edges {
-                          node {
-                            id
-                            title
-                            description
-                            handle
-                            variants(first: 20) {
-                              edges {
-                                node {
-                                  id
-                                  title
-                                  priceV2 {
-                                    amount
-                                    currencyCode
-                                  }
-                                  availableForSale
-                                  selectedOptions {
-                                    name
-                                    value
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            `,
+             query GetProductsByCollection($title: String!) {
+               collections(first: 1, query: $title) {
+                 edges {
+                   node {
+                     title
+                     products(first: 10) {
+                       edges {
+                         node {
+                           id
+                           title
+                           description
+                           handle
+                           variants(first: 20) {
+                             edges {
+                               node {
+                                 id
+                                 title
+                                 priceV2 {
+                                   amount
+                                   currencyCode
+                                 }
+                                 availableForSale
+                                 selectedOptions {
+                                   name
+                                   value
+                                 }
+                               }
+                             }
+                           }
+                         }
+                       }
+                     }
+                   }
+                 }
+               }
+             }
+           `,
             variables: {
               title: "Email Signatures",
             },
@@ -234,6 +240,7 @@ export default function SignaturePricingCalculator({
           name: product.title,
           description: product.description,
           price: basePrice,
+          handle: product.handle,
         }
       })
 
@@ -275,6 +282,37 @@ export default function SignaturePricingCalculator({
       setTotalPrice(selectedPackage.price + USER_PRICE * userCount)
     }
   }, [selectedAnimation, userCount, animationPackages])
+
+  /**
+   * Helper function to determine the display title based on product ID or handle
+   *
+   * @param option - The pricing option
+   * @returns The display title (Starter, Essential, or Premium)
+   */
+  const getDisplayTitle = (option: PricingOption): string => {
+    // Check handle first (most reliable)
+    if (option.handle) {
+      if (option.handle.includes("starter")) return "Starter"
+      if (option.handle.includes("custom")) return "Essential"
+      if (option.handle.includes("premium")) return "Premium"
+    }
+
+    // Fallback to ID check
+    const id = option.id.toLowerCase()
+    if (id.includes("starter")) return "Starter"
+    if (id.includes("custom") || id.includes("essential")) return "Essential"
+    if (id.includes("premium")) return "Premium"
+
+    // Fallback to name
+    if (option.name === "Starter" || option.name === "Essential" || option.name === "Premium") {
+      return option.name
+    }
+
+    // Last resort: determine by price
+    if (option.price <= 950) return "Starter"
+    if (option.price <= 1450) return "Essential"
+    return "Premium"
+  }
 
   /**
    * CRITICAL FUNCTION: Finds the variant ID that matches the user count
@@ -500,23 +538,15 @@ export default function SignaturePricingCalculator({
                   {/* Sort and map the packages to ensure Starter, Essential, Premium order */}
                   {[...animationPackages]
                     .sort((a, b) => {
-                      // Determine package type based on price or other characteristics
-                      const getPackageType = (pkg: PricingOption) => {
-                        if (pkg.price <= 950) return "Starter"
-                        if (pkg.price <= 1450) return "Essential"
-                        return "Premium"
-                      }
-
                       // Order: Starter (1), Essential (2), Premium (3)
                       const order = { Starter: 1, Essential: 2, Premium: 3 }
-                      return order[getPackageType(a)] - order[getPackageType(b)]
+                      const aType = getDisplayTitle(a)
+                      const bType = getDisplayTitle(b)
+                      return (order[aType as keyof typeof order] || 99) - (order[bType as keyof typeof order] || 99)
                     })
                     .map((option) => {
-                      // Determine the display title based on price range
-                      let displayTitle = option.name
-                      if (option.price <= 950) displayTitle = "Starter"
-                      else if (option.price <= 1450) displayTitle = "Essential"
-                      else displayTitle = "Premium"
+                      // Get the display title based on product ID or handle
+                      const displayTitle = getDisplayTitle(option)
 
                       return (
                         <div
@@ -539,6 +569,33 @@ export default function SignaturePricingCalculator({
                             </div>
                           </div>
                           <p className="text-sm text-gray-600 flex-grow">{option.description}</p>
+                          {displayTitle === "Starter" && (
+                            <AnimationExamples
+                              examples={[
+                                { src: "/animations/examples/starter-flow.gif", alt: "Animated flow" },
+                                { src: "/animations/examples/starter-spin.gif", alt: "Animated spin" },
+                                { src: "/animations/examples/starter-pulse-spin.gif", alt: "Animated pulse spin" },
+                              ]}
+                            />
+                          )}
+                          {displayTitle === "Essential" && (
+                            <AnimationExamples
+                              examples={[
+                                { src: "/animations/examples/essential-b.gif", alt: "Animated B logo" },
+                                { src: "/animations/examples/essential-squares.gif", alt: "Animated squares" },
+                                { src: "/animations/examples/essential-slip.gif", alt: "Animated Slip logo" },
+                              ]}
+                            />
+                          )}
+                          {displayTitle === "Premium" && (
+                            <AnimationExamples
+                              examples={[
+                                { src: "/animations/examples/premium-alter.gif", alt: "Animated Alter logo" },
+                                { src: "/animations/examples/premium-melalogic.gif", alt: "Animated Melalogic logo" },
+                                { src: "/animations/examples/premium-playpad.gif", alt: "Animated Playpad logo" },
+                              ]}
+                            />
+                          )}
                         </div>
                       )
                     })}
