@@ -23,7 +23,7 @@ import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 import type { ReactNode } from "react"
 import type { ShopifyProduct } from "@/lib/shopify"
-import { createCart } from "@/lib/shopify"
+import { createCart, DEPOSIT_SELLING_PLAN_ID } from "@/lib/shopify"
 // First, import the AnimationExamples component at the top of the file
 import AnimationExamples from "@/components/animation-examples"
 
@@ -351,7 +351,7 @@ export default function AvatarPricingCalculator({
       console.log(`Selected variant ID: ${variantId}`)
 
       // Hardcoded selling plan ID for 50% deposit
-      const sellingPlanId = "gid://shopify/SellingPlan/3226403001"
+      const sellingPlanId = DEPOSIT_SELLING_PLAN_ID
 
       // Create a cart with the selected variant and selling plan
       const cart = await createCart(variantId, 1, [], sellingPlanId)
@@ -490,7 +490,9 @@ export default function AvatarPricingCalculator({
             ) : (
               <>
                 <h3 className="text-5xl font-bold text-english-violet">${totalPrice}</h3>
-                <p className="mt-1 text-sm text-english-violet/60">50% now, rest auto-charged in 20 days or at project end.</p>
+                <p className="mt-1 text-sm text-english-violet/60">
+                  50% now, rest auto-charged in 20 days or at project end.
+                </p>
               </>
             )}
             <p className="mt-3 text-english-violet/70">

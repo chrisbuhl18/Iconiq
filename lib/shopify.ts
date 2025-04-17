@@ -2,6 +2,9 @@
  * Shopify API utilities for the Lumio pricing calculator
  */
 
+// Selling plan ID for 50% deposit option
+export const DEPOSIT_SELLING_PLAN_ID = "gid://shopify/SellingPlan/3226403001"
+
 // Types for Shopify API responses
 export interface ShopifyProduct {
   id: string
@@ -159,7 +162,7 @@ export async function createCart(
   variantId: string,
   quantity = 1,
   customAttributes: Array<{ key: string; value: string }> = [],
-  sellingPlanId = "gid://shopify/SellingPlan/3226403001", // Default to 50% deposit plan
+  sellingPlanId = DEPOSIT_SELLING_PLAN_ID, // Default to 50% deposit plan
 ): Promise<CartCreateResponse> {
   try {
     const response = await fetch("/api/shopify/cart", {
