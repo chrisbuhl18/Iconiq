@@ -27,9 +27,6 @@ import type { ShopifyProduct } from "@/lib/shopify"
 import { createCart } from "@/lib/shopify"
 import AnimationExamples from "@/components/animation-examples"
 
-// First, import the new functions at the top of the file
-import { findVariantForUserCount } from "@/lib/shopify"
-
 interface PricingOption {
   id: string
   name: string
@@ -329,6 +326,91 @@ export default function SignaturePricingCalculator({
    * @param userCount - The number of users selected
    * @returns The variant ID that matches the user count, or null if no match is found
    */
+  const findVariantForUserCount = (product: ShopifyProduct, userCount: number): string | null => {
+    if (!product || !product.variants || product.variants.length === 0) {
+      console.error("Invalid product or no variants available", product)
+      return null
+    }
+
+    // For user counts > 50, look for a "custom" variant
+    if (userCount > 50) {
+      console.log(`Looking for custom variant for user count > 50: ${userCount}`)
+      const customVariant = product.variants.find(
+        (variant) =>
+          variant.title.toLowerCase().includes("custom") ||
+          (variant.selectedOptions &&
+            variant.selectedOptions.some((option) => option.value.toLowerCase().includes("custom"))),
+      )
+
+      if (customVariant) {
+        console.log(`Found custom variant: ${customVariant.id}`)
+        return customVariant.id
+      }
+
+      console.log("No custom variant found, looking for highest user count variant")
+      // If no custom variant found, use the highest user count variant
+      const sortedVariants = [...product.variants].sort((a, b) => {
+        const aCount = extractUserCount(a)
+        const bCount = extractUserCount(b)
+        return bCount - aCount
+      })
+
+      if (sortedVariants.length > 0) {
+        console.log(
+          `Using highest user count variant: ${sortedVariants[0].id} (${extractUserCount(sortedVariants[0])} users)`,
+        )
+        return sortedVariants[0]?.id || null
+      }
+
+      return null
+    }
+
+    // Try to find an exact match for the user count
+    console.log(`Looking for exact match for user count: ${userCount}`)
+    const exactMatch = product.variants.find((variant) => {
+      if (!variant.selectedOptions) return false
+      return variant.selectedOptions.some(
+        (option) => option.name === "User Count" && option.value === userCount.toString(),
+      )
+    })
+
+    if (exactMatch) {
+      console.log(`Found exact match variant: ${exactMatch.id}`)
+      return exactMatch.id
+    }
+
+    console.log(`No exact match found, looking for closest match below ${userCount}`)
+    // If no exact match, find the closest match below the requested count
+    const validVariants = product.variants
+      .filter((variant) => {
+        if (!variant.selectedOptions) return false
+        const countOption = variant.selectedOptions.find((option) => option.name === "User Count")
+        if (!countOption) return false
+        const count = Number.parseInt(countOption.value, 10)
+        return !isNaN(count) && count <= userCount
+      })
+      .sort((a, b) => {
+        const aCount = extractUserCount(a)
+        const bCount = extractUserCount(b)
+        return bCount - aCount // Sort in descending order
+      })
+
+    if (validVariants.length > 0) {
+      console.log(`Using closest match variant: ${validVariants[0].id} (${extractUserCount(validVariants[0])} users)`)
+      return validVariants[0]?.id || null
+    }
+
+    // Fallback to the first variant if no match is found
+    console.log(`No matching variant found, using first variant: ${product.variants[0].id}`)
+    return product.variants[0].id
+  }
+
+  /**
+   * Helper function to extract user count from variant
+   *
+   * @param variant - The Shopify variant
+   * @returns The user count as a number, or 0 if not found
+   */
   const extractUserCount = (variant: any): number => {
     if (!variant.selectedOptions) return 0
 
@@ -344,76 +426,41 @@ export default function SignaturePricingCalculator({
    *
    * This function is responsible for finding the correct variant and creating the cart.
    * It's critical for ensuring the correct product is added to the cart.
+   *
+   * DO NOT MODIFY without thorough testing with actual Shopify variants.
    */
   const handleGetStarted = async () => {
     setIsSubmitting(true)
     setError(null)
 
-    console.log("Starting checkout process...")
-
     try {
       // Find the selected animation package
       const selectedPackage = animationPackages.find((p) => p.id === selectedAnimation)
       if (!selectedPackage) {
-        throw new Error("Please select a package first")
+        throw new Error("Selected package not found")
       }
-
-      console.log("Selected package:", selectedPackage)
-      console.log("User count:", userCount)
 
       if (usingFallback) {
         // We're using fallback data, show an alert
         alert(
-          `This would add the ${selectedPackage.name} package with ${userCount} users with 50% deposit option. Total: ${totalPrice}`,
+          `This would add the ${selectedPackage.name} package with ${userCount} users to your cart with 50% deposit option. Total: ${totalPrice / 2}`,
         )
-        setIsSubmitting(false)
         return
       }
 
       // Find the product in the original products array
       const product = products?.find((p) => p.id === selectedAnimation)
-      console.log("Found product:", product)
-
       if (!product) {
         throw new Error("Product not found")
       }
 
-      // SIMPLIFIED APPROACH: Just use the first variant if we can't find a match
-      // This ensures we at least add something to the cart
-      let variantId
-
-      try {
-        // Try to find a variant matching the user count
-        variantId = findVariantForUserCount(product, userCount)
-
-        // If no variant found, use the first variant as fallback
-        if (!variantId && product.variants) {
-          if (Array.isArray(product.variants) && product.variants.length > 0) {
-            variantId = product.variants[0].id
-            console.log("Using first variant as fallback:", variantId)
-          } else if (product.variants.edges && product.variants.edges.length > 0) {
-            variantId = product.variants.edges[0].node.id
-            console.log("Using first edge variant as fallback:", variantId)
-          }
-        }
-      } catch (variantError) {
-        console.error("Error finding variant:", variantError)
-
-        // Last resort fallback - try to extract any variant ID we can find
-        if (product.variants) {
-          if (Array.isArray(product.variants) && product.variants.length > 0) {
-            variantId = product.variants[0].id
-          } else if (product.variants.edges && product.variants.edges.length > 0) {
-            variantId = product.variants.edges[0].node.id
-          }
-        }
-      }
-
+      // Find the variant that matches the user count
+      const variantId = findVariantForUserCount(product, userCount)
       if (!variantId) {
-        throw new Error("Could not find any valid variant")
+        throw new Error(`No variant found for user count: ${userCount}`)
       }
 
-      console.log(`Selected variant ID: ${variantId}`)
+      console.log(`Selected variant ID: ${variantId} for user count: ${userCount}`)
 
       // Create custom attributes for the cart
       const customAttributes = [
@@ -423,13 +470,11 @@ export default function SignaturePricingCalculator({
         },
       ]
 
-      // Hardcoded selling plan ID that we know works
-      const depositSellingPlanId = "gid://shopify/SellingPlan/3226403001"
-      console.log(`Using deposit selling plan ID: ${depositSellingPlanId}`)
+      // Hardcoded selling plan ID for 50% deposit
+      const sellingPlanId = "gid://shopify/SellingPlan/3226403001"
 
-      // Create a cart with the selected variant and the 50% deposit selling plan
-      const cart = await createCart(variantId, 1, customAttributes, depositSellingPlanId)
-      console.log("Cart created successfully:", cart)
+      // Create a cart with the selected variant and selling plan
+      const cart = await createCart(variantId, 1, customAttributes, sellingPlanId)
 
       // Redirect to checkout
       window.location.href = cart.checkoutUrl
@@ -633,7 +678,10 @@ export default function SignaturePricingCalculator({
                 ) : isCustomPricing ? (
                   <h3 className="text-4xl font-bold text-english-violet">Custom Quote</h3>
                 ) : (
-                  <h3 className="text-4xl font-bold text-english-violet">${totalPrice}</h3>
+                  <>
+                    <h3 className="text-4xl font-bold text-english-violet">${Math.round(totalPrice / 2)}</h3>
+                    <p className="mt-1 text-sm text-english-violet/60">50% deposit (full price: ${totalPrice})</p>
+                  </>
                 )}
                 <p className="mt-3 text-sm text-english-violet/70">
                   All packages include installation and 2 rounds of revision. If additional revisions are needed, we'll

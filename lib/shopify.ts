@@ -159,45 +159,29 @@ export async function createCart(
   variantId: string,
   quantity = 1,
   customAttributes: Array<{ key: string; value: string }> = [],
-  sellingPlanId: string | null = null, // Add this parameter
+  sellingPlanId = "gid://shopify/SellingPlan/3226403001", // Default to 50% deposit plan
 ): Promise<CartCreateResponse> {
   try {
-    console.log("Creating cart with:", {
-      variantId,
-      quantity,
-      customAttributes,
-      sellingPlanId,
-    })
-
-    // Prepare the request body
-    const requestBody: any = {
-      variantId,
-      quantity,
-      customAttributes,
-    }
-
-    // Add selling plan ID if provided
-    if (sellingPlanId) {
-      requestBody.sellingPlanId = sellingPlanId
-    }
-
     const response = await fetch("/api/shopify/cart", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify({
+        variantId,
+        quantity,
+        customAttributes,
+        sellingPlanId, // Add selling plan ID to the request
+      }),
     })
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => null)
-      console.error("Cart API error response:", errorData)
       const errorMessage = errorData?.error || `API error: ${response.status}`
       throw new Error(errorMessage)
     }
 
     const data = await response.json()
-    console.log("Cart API response:", data)
 
     if (data.error) {
       throw new Error(data.error)
@@ -212,99 +196,6 @@ export async function createCart(
     console.error("Error creating cart:", error)
     throw error
   }
-}
-
-// Add a new function to fetch selling plans for a product
-export async function getSellingPlansForProduct(productId: string): Promise<any[]> {
-  try {
-    const response = await fetch("/api/shopify", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        query: `
-          query GetSellingPlans($productId: ID!) {
-            product(id: $productId) {
-              sellingPlanGroups(first: 5) {
-                edges {
-                  node {
-                    name
-                    sellingPlans(first: 5) {
-                      edges {
-                        node {
-                          id
-                          name
-                          description
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        `,
-        variables: {
-          productId,
-        },
-      }),
-    })
-
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`)
-    }
-
-    const data = await response.json()
-
-    if (data.errors) {
-      throw new Error(data.errors[0].message)
-    }
-
-    // Extract and return the selling plans
-    const sellingPlanGroups = data.data?.product?.sellingPlanGroups?.edges || []
-    const allSellingPlans = []
-
-    for (const group of sellingPlanGroups) {
-      const plans = group.node.sellingPlans.edges.map((edge: any) => ({
-        id: edge.node.id,
-        name: edge.node.name,
-        description: edge.node.description,
-        groupName: group.node.name,
-      }))
-      allSellingPlans.push(...plans)
-    }
-
-    return allSellingPlans
-  } catch (error) {
-    console.error("Error fetching selling plans:", error)
-    return []
-  }
-}
-
-// Update the helper function to find the 50% deposit selling plan
-export function findDepositSellingPlan(sellingPlans: any[]): string | null {
-  console.log("Available selling plans:", JSON.stringify(sellingPlans, null, 2))
-
-  // First try to find a selling plan that contains the specific identifier "3226403001"
-  const depositPlan = sellingPlans.find(
-    (plan) =>
-      plan.id.includes("3226403001") ||
-      (plan.name && plan.name.includes("3226403001")) ||
-      (plan.description && plan.description.includes("3226403001")),
-  )
-
-  // If we found a plan, return its ID
-  if (depositPlan) {
-    console.log("Found deposit plan:", depositPlan)
-    return depositPlan.id
-  }
-
-  // If no plan with the specific identifier is found, log a warning and return the hardcoded ID
-  console.warn("No selling plan with identifier '3226403001' found in API response. Using hardcoded ID.")
-
-  // Return the hardcoded selling plan ID that we know works
-  return "3226403001"
 }
 
 /**
@@ -507,100 +398,5 @@ export function findVariantId(productMap: any, packageName: string, userCount: n
   } catch (error) {
     console.error("Error finding variant ID:", error)
     throw error
-  }
-}
-
-/**
- * Finds the variant ID that matches the user count
- *
- * @param product - The Shopify product containing variants
- * @param userCount - The number of users selected
- * @returns The variant ID that matches the user count, or null if no match is found
- */
-export function findVariantForUserCount(product: any, userCount: number): string | null {
-  try {
-    console.log("Finding variant for user count:", userCount)
-    console.log("Product structure:", JSON.stringify(product, null, 2))
-
-    // Check if product has the expected structure
-    if (!product || typeof product !== "object") {
-      console.error("Invalid product (null or not an object)")
-      return null
-    }
-
-    // Handle different possible structures for variants
-    let variants = []
-
-    if (Array.isArray(product.variants)) {
-      // Direct array of variants
-      variants = product.variants
-      console.log("Using direct variants array, length:", variants.length)
-    } else if (product.variants && product.variants.edges && Array.isArray(product.variants.edges)) {
-      // GraphQL-style edges structure
-      variants = product.variants.edges.map((edge: any) => edge.node)
-      console.log("Using variants.edges structure, length:", variants.length)
-    } else {
-      console.error("No valid variants structure found")
-      return null
-    }
-
-    // Log all variants for debugging
-    console.log(
-      "Available variants:",
-      variants.map((v: any) => ({
-        id: v.id,
-        title: v.title,
-        selectedOptions: v.selectedOptions,
-      })),
-    )
-
-    // First, try to find an exact match for the user count
-    let matchingVariant = variants.find((variant: any) => {
-      // Check if variant has selectedOptions
-      if (!variant.selectedOptions || !Array.isArray(variant.selectedOptions)) {
-        return false
-      }
-
-      return variant.selectedOptions.some(
-        (option: any) => option.name === "User Count" && option.value === String(userCount),
-      )
-    })
-
-    if (matchingVariant) {
-      console.log("Found exact match for user count:", userCount)
-      return matchingVariant.id
-    }
-
-    // If no exact match, try to find a variant with a title that includes the user count
-    matchingVariant = variants.find((variant: any) => variant.title && variant.title.includes(`${userCount} User`))
-
-    if (matchingVariant) {
-      console.log("Found match by title for user count:", userCount)
-      return matchingVariant.id
-    }
-
-    // If still no match, use the first variant as a fallback
-    if (variants.length > 0) {
-      console.log("No match found, using first variant as fallback")
-      return variants[0].id
-    }
-
-    console.warn(`No variant found for user count: ${userCount}`)
-    return null
-  } catch (error) {
-    console.error("Error finding variant ID for user count:", error)
-    // If there's any error, try to return the first variant as a fallback
-    try {
-      if (product && product.variants) {
-        if (Array.isArray(product.variants) && product.variants.length > 0) {
-          return product.variants[0].id
-        } else if (product.variants.edges && product.variants.edges.length > 0) {
-          return product.variants.edges[0].node.id
-        }
-      }
-    } catch (e) {
-      console.error("Error in fallback logic:", e)
-    }
-    return null
   }
 }

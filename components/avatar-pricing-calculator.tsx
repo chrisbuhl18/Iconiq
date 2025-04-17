@@ -325,66 +325,36 @@ export default function AvatarPricingCalculator({
     setIsSubmitting(true)
     setError(null)
 
-    console.log("Starting checkout process...")
-
     try {
       // Find the selected animation package
       const selectedPackage = animationPackages.find((p) => p.id === selectedAnimation)
       if (!selectedPackage) {
-        throw new Error("Please select a package first")
+        throw new Error("Selected package not found")
       }
-
-      console.log("Selected package:", selectedPackage)
 
       if (usingFallback) {
         // We're using fallback data, show an alert
         alert(
-          `This would add the ${selectedPackage.name} package to your cart with 50% deposit option. Total: ${totalPrice}`,
+          `This would add the ${selectedPackage.name} package to your cart with 50% deposit option. Total: ${totalPrice / 2}`,
         )
-        setIsSubmitting(false)
         return
       }
 
       // Find the product in the original products array
       const product = products?.find((p) => p.id === selectedAnimation)
-      console.log("Found product:", product)
-
-      if (!product) {
-        throw new Error("Product not found")
+      if (!product || product.variants.length === 0) {
+        throw new Error("Product or variant not found")
       }
 
-      // SIMPLIFIED APPROACH: Just use the first variant
-      // This ensures we at least add something to the cart
-      let variantId
-
-      try {
-        // For avatars, just use the first variant
-        if (product.variants) {
-          if (Array.isArray(product.variants) && product.variants.length > 0) {
-            variantId = product.variants[0].id
-            console.log("Using first variant:", variantId)
-          } else if (product.variants.edges && product.variants.edges.length > 0) {
-            variantId = product.variants.edges[0].node.id
-            console.log("Using first edge variant:", variantId)
-          }
-        }
-      } catch (variantError) {
-        console.error("Error finding variant:", variantError)
-      }
-
-      if (!variantId) {
-        throw new Error("Could not find any valid variant")
-      }
-
+      // Use the first variant ID for avatars (since there's no user count)
+      const variantId = product.variants[0].id
       console.log(`Selected variant ID: ${variantId}`)
 
-      // Hardcoded selling plan ID that we know works
-      const depositSellingPlanId = "gid://shopify/SellingPlan/3226403001"
-      console.log(`Using deposit selling plan ID: ${depositSellingPlanId}`)
+      // Hardcoded selling plan ID for 50% deposit
+      const sellingPlanId = "gid://shopify/SellingPlan/3226403001"
 
-      // Create a cart with the selected variant and the 50% deposit selling plan
-      const cart = await createCart(variantId, 1, [], depositSellingPlanId)
-      console.log("Cart created successfully:", cart)
+      // Create a cart with the selected variant and selling plan
+      const cart = await createCart(variantId, 1, [], sellingPlanId)
 
       // Redirect to checkout
       window.location.href = cart.checkoutUrl
@@ -518,7 +488,10 @@ export default function AvatarPricingCalculator({
             {!selectedAnimation ? (
               <h3 className="text-5xl font-bold text-english-violet">Select a Package</h3>
             ) : (
-              <h3 className="text-5xl font-bold text-english-violet">${totalPrice}</h3>
+              <>
+                <h3 className="text-5xl font-bold text-english-violet">${Math.round(totalPrice / 2)}</h3>
+                <p className="mt-1 text-sm text-english-violet/60">50% deposit (full price: ${totalPrice})</p>
+              </>
             )}
             <p className="mt-3 text-english-violet/70">
               All packages include installation and 2 rounds of revision. If additional revisions are needed, we'll
