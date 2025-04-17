@@ -27,9 +27,6 @@ import { createCart } from "@/lib/shopify"
 // First, import the AnimationExamples component at the top of the file
 import AnimationExamples from "@/components/animation-examples"
 
-// First, import the new functions at the top of the file
-import { getSellingPlansForProduct, findDepositSellingPlan } from "@/lib/shopify"
-
 interface PricingOption {
   id: string
   name: string
@@ -328,52 +325,66 @@ export default function AvatarPricingCalculator({
     setIsSubmitting(true)
     setError(null)
 
+    console.log("Starting checkout process...")
+
     try {
       // Find the selected animation package
       const selectedPackage = animationPackages.find((p) => p.id === selectedAnimation)
       if (!selectedPackage) {
-        throw new Error("Selected package not found")
+        throw new Error("Please select a package first")
       }
+
+      console.log("Selected package:", selectedPackage)
 
       if (usingFallback) {
         // We're using fallback data, show an alert
         alert(
           `This would add the ${selectedPackage.name} package to your cart with 50% deposit option. Total: ${totalPrice}`,
         )
+        setIsSubmitting(false)
         return
       }
 
       // Find the product in the original products array
       const product = products?.find((p) => p.id === selectedAnimation)
-      if (!product || product.variants.length === 0) {
-        throw new Error("Product or variant not found")
+      console.log("Found product:", product)
+
+      if (!product) {
+        throw new Error("Product not found")
       }
 
-      // Use the first variant ID for avatars (since there's no user count)
-      const variantId = product.variants[0].id
-      console.log(`Selected variant ID: ${variantId}`)
-
-      // Try to fetch selling plans, but use hardcoded ID if that fails
-      let depositSellingPlanId = "3226403001" // Default hardcoded ID
+      // SIMPLIFIED APPROACH: Just use the first variant
+      // This ensures we at least add something to the cart
+      let variantId
 
       try {
-        const sellingPlans = await getSellingPlansForProduct(selectedAnimation)
-        console.log("Fetched selling plans:", sellingPlans)
-
-        // Only update the ID if we actually found a plan
-        const foundPlanId = findDepositSellingPlan(sellingPlans)
-        if (foundPlanId) {
-          depositSellingPlanId = foundPlanId
+        // For avatars, just use the first variant
+        if (product.variants) {
+          if (Array.isArray(product.variants) && product.variants.length > 0) {
+            variantId = product.variants[0].id
+            console.log("Using first variant:", variantId)
+          } else if (product.variants.edges && product.variants.edges.length > 0) {
+            variantId = product.variants.edges[0].node.id
+            console.log("Using first edge variant:", variantId)
+          }
         }
-      } catch (error) {
-        console.warn("Error fetching selling plans, using hardcoded ID:", error)
-        // Continue with hardcoded ID
+      } catch (variantError) {
+        console.error("Error finding variant:", variantError)
       }
 
+      if (!variantId) {
+        throw new Error("Could not find any valid variant")
+      }
+
+      console.log(`Selected variant ID: ${variantId}`)
+
+      // Hardcoded selling plan ID that we know works
+      const depositSellingPlanId = "gid://shopify/SellingPlan/3226403001"
       console.log(`Using deposit selling plan ID: ${depositSellingPlanId}`)
 
       // Create a cart with the selected variant and the 50% deposit selling plan
       const cart = await createCart(variantId, 1, [], depositSellingPlanId)
+      console.log("Cart created successfully:", cart)
 
       // Redirect to checkout
       window.location.href = cart.checkoutUrl

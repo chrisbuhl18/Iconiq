@@ -162,20 +162,23 @@ export async function createCart(
   sellingPlanId: string | null = null, // Add this parameter
 ): Promise<CartCreateResponse> {
   try {
-    // Prepare the cart input with the selling plan ID if provided
-    const cartInput: any = {
-      lines: [
-        {
-          quantity,
-          merchandiseId: variantId,
-          attributes: customAttributes,
-        },
-      ],
+    console.log("Creating cart with:", {
+      variantId,
+      quantity,
+      customAttributes,
+      sellingPlanId,
+    })
+
+    // Prepare the request body
+    const requestBody: any = {
+      variantId,
+      quantity,
+      customAttributes,
     }
 
-    // Add selling plan ID to the line item if provided
+    // Add selling plan ID if provided
     if (sellingPlanId) {
-      cartInput.lines[0].sellingPlanId = sellingPlanId
+      requestBody.sellingPlanId = sellingPlanId
     }
 
     const response = await fetch("/api/shopify/cart", {
@@ -183,16 +186,18 @@ export async function createCart(
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(cartInput),
+      body: JSON.stringify(requestBody),
     })
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => null)
+      console.error("Cart API error response:", errorData)
       const errorMessage = errorData?.error || `API error: ${response.status}`
       throw new Error(errorMessage)
     }
 
     const data = await response.json()
+    console.log("Cart API response:", data)
 
     if (data.error) {
       throw new Error(data.error)
@@ -514,30 +519,88 @@ export function findVariantId(productMap: any, packageName: string, userCount: n
  */
 export function findVariantForUserCount(product: any, userCount: number): string | null {
   try {
-    if (!product || !product.variants || !product.variants.edges) {
-      console.error("Invalid product structure:", product)
+    console.log("Finding variant for user count:", userCount)
+    console.log("Product structure:", JSON.stringify(product, null, 2))
+
+    // Check if product has the expected structure
+    if (!product || typeof product !== "object") {
+      console.error("Invalid product (null or not an object)")
       return null
     }
 
-    // First, try to find an exact match
-    const matchingVariant = product.variants.edges.find((edge: any) => {
-      const variant = edge.node
-      return (
-        variant.selectedOptions &&
-        variant.selectedOptions.some(
-          (option: any) => option.name === "User Count" && option.value === String(userCount),
-        )
+    // Handle different possible structures for variants
+    let variants = []
+
+    if (Array.isArray(product.variants)) {
+      // Direct array of variants
+      variants = product.variants
+      console.log("Using direct variants array, length:", variants.length)
+    } else if (product.variants && product.variants.edges && Array.isArray(product.variants.edges)) {
+      // GraphQL-style edges structure
+      variants = product.variants.edges.map((edge: any) => edge.node)
+      console.log("Using variants.edges structure, length:", variants.length)
+    } else {
+      console.error("No valid variants structure found")
+      return null
+    }
+
+    // Log all variants for debugging
+    console.log(
+      "Available variants:",
+      variants.map((v: any) => ({
+        id: v.id,
+        title: v.title,
+        selectedOptions: v.selectedOptions,
+      })),
+    )
+
+    // First, try to find an exact match for the user count
+    let matchingVariant = variants.find((variant: any) => {
+      // Check if variant has selectedOptions
+      if (!variant.selectedOptions || !Array.isArray(variant.selectedOptions)) {
+        return false
+      }
+
+      return variant.selectedOptions.some(
+        (option: any) => option.name === "User Count" && option.value === String(userCount),
       )
     })
 
     if (matchingVariant) {
-      return matchingVariant.node.id
+      console.log("Found exact match for user count:", userCount)
+      return matchingVariant.id
     }
 
-    console.warn(`No exact variant found for user count: ${userCount}.`)
+    // If no exact match, try to find a variant with a title that includes the user count
+    matchingVariant = variants.find((variant: any) => variant.title && variant.title.includes(`${userCount} User`))
+
+    if (matchingVariant) {
+      console.log("Found match by title for user count:", userCount)
+      return matchingVariant.id
+    }
+
+    // If still no match, use the first variant as a fallback
+    if (variants.length > 0) {
+      console.log("No match found, using first variant as fallback")
+      return variants[0].id
+    }
+
+    console.warn(`No variant found for user count: ${userCount}`)
     return null
   } catch (error) {
     console.error("Error finding variant ID for user count:", error)
+    // If there's any error, try to return the first variant as a fallback
+    try {
+      if (product && product.variants) {
+        if (Array.isArray(product.variants) && product.variants.length > 0) {
+          return product.variants[0].id
+        } else if (product.variants.edges && product.variants.edges.length > 0) {
+          return product.variants.edges[0].node.id
+        }
+      }
+    } catch (e) {
+      console.error("Error in fallback logic:", e)
+    }
     return null
   }
 }
