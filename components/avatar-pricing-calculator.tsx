@@ -348,18 +348,24 @@ export default function AvatarPricingCalculator({
       const variantId = product.variants[0].id
       console.log(`Selected variant ID: ${variantId}`)
 
-      // Always create cart with the selling plan ID for 50% deposit
-      console.log("Creating cart with selling plan ID for 50% deposit")
+      // Create custom attributes for the cart
       const customAttributes = [
         {
           key: "_spp2-deposit",
           value: "1",
         },
       ]
-      const cart = await createCart(variantId, 1, customAttributes, DEPOSIT_SELLING_PLAN_ID)
 
-      // Redirect to checkout
-      window.location.href = cart.checkoutUrl
+      try {
+        console.log("Creating cart with selling plan ID for 50% deposit")
+        const cart = await createCart(variantId, 1, customAttributes, DEPOSIT_SELLING_PLAN_ID)
+
+        // Redirect to checkout
+        window.location.href = cart.checkoutUrl
+      } catch (error) {
+        console.error("Error creating cart with selling plan ID:", error)
+        setError(`Error: ${error instanceof Error ? error.message : String(error)}`)
+      }
     } catch (error) {
       console.error("Error adding to cart:", error)
       setError(`Error: ${error instanceof Error ? error.message : String(error)}`)

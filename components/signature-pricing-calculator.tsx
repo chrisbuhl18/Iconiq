@@ -468,19 +468,22 @@ export default function SignaturePricingCalculator({
           key: "User Count",
           value: userCount.toString(),
         },
+        {
+          key: "_spp2-deposit",
+          value: "1",
+        },
       ]
 
-      // Always create cart with the selling plan ID for 50% deposit
-      console.log("Creating cart with selling plan ID for 50% deposit")
-      // Add the _spp2-deposit property to match Shopify's implementation
-      customAttributes.push({
-        key: "_spp2-deposit",
-        value: "1",
-      })
-      const cart = await createCart(variantId, 1, customAttributes, DEPOSIT_SELLING_PLAN_ID)
+      try {
+        console.log("Creating cart with selling plan ID for 50% deposit")
+        const cart = await createCart(variantId, 1, customAttributes, DEPOSIT_SELLING_PLAN_ID)
 
-      // Redirect to checkout
-      window.location.href = cart.checkoutUrl
+        // Redirect to checkout
+        window.location.href = cart.checkoutUrl
+      } catch (error) {
+        console.error("Error creating cart with selling plan ID:", error)
+        setError(`Error: ${error instanceof Error ? error.message : String(error)}`)
+      }
     } catch (error) {
       console.error("Error adding to cart:", error)
       setError(`Error: ${error instanceof Error ? error.message : String(error)}`)

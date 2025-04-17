@@ -34,10 +34,6 @@ export interface CartCreateResponse {
 /**
  * Creates a cart with the selected items
  * IMPORTANT: The selling plan ID is REQUIRED for the 50% deposit functionality
- *
- * For 50% deposit to work correctly, two things are needed:
- * 1. The selling plan ID must be included (DEPOSIT_SELLING_PLAN_ID)
- * 2. A custom attribute with key "_spp2-deposit" and value "1" should be included
  */
 export async function createCart(
   variantId: string,
@@ -49,21 +45,35 @@ export async function createCart(
     console.log(`Creating cart with variant ID: ${variantId}, quantity: ${quantity}, selling plan ID: ${sellingPlanId}`)
     console.log(`Custom attributes:`, customAttributes)
 
-    // Validate selling plan ID format
-    if (!sellingPlanId || !sellingPlanId.startsWith("gid://shopify/SellingPlan/")) {
-      console.error("Invalid selling plan ID format:", sellingPlanId)
-      throw new Error("Invalid selling plan ID format. Must start with 'gid://shopify/SellingPlan/'")
+    // Add the _spp2-deposit property if using selling plan
+    if (sellingPlanId) {
+      console.log("Creating cart with selling plan ID for 50% deposit")
+
+      // Check if _spp2-deposit property is already included
+      const hasDepositProperty = customAttributes.some((attr) => attr.key === "_spp2-deposit" && attr.value === "1")
+
+      if (!hasDepositProperty) {
+        // Add the property
+        customAttributes = [
+          ...customAttributes,
+          {
+            key: "_spp2-deposit",
+            value: "1",
+          },
+        ]
+      }
     }
 
-    // Check if _spp2-deposit property is included
-    const hasDepositProperty = customAttributes.some((attr) => attr.key === "_spp2-deposit" && attr.value === "1")
-    if (!hasDepositProperty) {
-      console.warn(
-        "_spp2-deposit property not found in custom attributes. This may be required for 50% deposit to work correctly.",
-      )
-    }
+    // Get the current hostname for the API call
+    const hostname = window.location.hostname
+    const protocol = window.location.protocol
+    const baseUrl = `${protocol}//${hostname}`
 
-    const response = await fetch("/api/shopify/cart", {
+    // Use the current hostname for the API endpoint
+    const apiUrl = `${baseUrl}/api/shopify/cart`
+    console.log(`Using API endpoint: ${apiUrl}`)
+
+    const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -72,7 +82,7 @@ export async function createCart(
         variantId,
         quantity,
         customAttributes,
-        sellingPlanId, // Always include the selling plan ID
+        sellingPlanId,
       }),
     })
 

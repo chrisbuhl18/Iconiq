@@ -6,7 +6,8 @@ export async function POST(request: Request) {
     const SHOPIFY_STOREFRONT_ACCESS_TOKEN = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN
 
     // Use the provided endpoint
-    const SHOPIFY_API_ENDPOINT = "https://golumio.myshopify.com/api/2023-10/graphql.json"
+    const SHOPIFY_API_ENDPOINT =
+      process.env.SHOPIFY_API_ENDPOINT || "https://golumio.myshopify.com/api/2023-10/graphql.json"
 
     // Log environment variable status (without revealing values)
     console.log("Environment variables status:", {
@@ -28,46 +29,41 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Variant ID is required" }, { status: 400 })
     }
 
-    // Validate selling plan ID - it's REQUIRED for the 50% deposit functionality
-    if (!sellingPlanId || !sellingPlanId.startsWith("gid://shopify/SellingPlan/")) {
-      console.error("Invalid or missing selling plan ID:", sellingPlanId)
-      return NextResponse.json(
-        { error: "Selling plan ID is required and must be in the correct format" },
-        { status: 400 },
-      )
-    }
-
+    // Log the request details
     console.log("Cart creation request:", {
       variantId,
       quantity,
       customAttributesCount: customAttributes.length,
+      customAttributes,
       sellingPlanId,
     })
 
-    // Prepare the cart input with the selling plan ID
+    // Add the _spp2-deposit property if it's not already included
+    const finalAttributes = [...customAttributes]
+    const hasDepositProperty = finalAttributes.some((attr: any) => attr.key === "_spp2-deposit" && attr.value === "1")
+
+    if (sellingPlanId && !hasDepositProperty) {
+      console.log("Adding _spp2-deposit property to custom attributes")
+      finalAttributes.push({
+        key: "_spp2-deposit",
+        value: "1",
+      })
+    }
+
+    // Prepare the cart input
     const cartInput = {
       lines: [
         {
           quantity,
           merchandiseId: variantId,
-          attributes: customAttributes,
-          sellingPlanId: sellingPlanId, // Always include the selling plan ID
+          attributes: finalAttributes,
+          ...(sellingPlanId ? { sellingPlanId } : {}),
         },
       ],
     }
 
-    // Add more detailed logging for the cart input and custom attributes
+    // Add more detailed logging for the cart input
     console.log("Cart input:", JSON.stringify(cartInput, null, 2))
-    console.log("Custom attributes:", JSON.stringify(customAttributes, null, 2))
-    console.log("Selling plan ID:", sellingPlanId)
-
-    // Check if _spp2-deposit property is included
-    const hasDepositProperty = customAttributes.some((attr: any) => attr.key === "_spp2-deposit" && attr.value === "1")
-    if (!hasDepositProperty) {
-      console.warn(
-        "_spp2-deposit property not found in custom attributes. This may be required for 50% deposit to work correctly.",
-      )
-    }
 
     // Create a cart using the Shopify Storefront API
     const response = await fetch(SHOPIFY_API_ENDPOINT, {
