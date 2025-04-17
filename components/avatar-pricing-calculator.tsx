@@ -353,11 +353,24 @@ export default function AvatarPricingCalculator({
       const variantId = product.variants[0].id
       console.log(`Selected variant ID: ${variantId}`)
 
-      // Fetch selling plans for this product to find the 50% deposit option
-      const sellingPlans = await getSellingPlansForProduct(selectedAnimation)
-      const depositSellingPlanId = findDepositSellingPlan(sellingPlans)
+      // Try to fetch selling plans, but use hardcoded ID if that fails
+      let depositSellingPlanId = "3226403001" // Default hardcoded ID
 
-      console.log(`Found deposit selling plan: ${depositSellingPlanId}`)
+      try {
+        const sellingPlans = await getSellingPlansForProduct(selectedAnimation)
+        console.log("Fetched selling plans:", sellingPlans)
+
+        // Only update the ID if we actually found a plan
+        const foundPlanId = findDepositSellingPlan(sellingPlans)
+        if (foundPlanId) {
+          depositSellingPlanId = foundPlanId
+        }
+      } catch (error) {
+        console.warn("Error fetching selling plans, using hardcoded ID:", error)
+        // Continue with hardcoded ID
+      }
+
+      console.log(`Using deposit selling plan ID: ${depositSellingPlanId}`)
 
       // Create a cart with the selected variant and the 50% deposit selling plan
       const cart = await createCart(variantId, 1, [], depositSellingPlanId)

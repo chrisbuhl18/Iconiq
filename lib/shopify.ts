@@ -279,7 +279,9 @@ export async function getSellingPlansForProduct(productId: string): Promise<any[
 
 // Update the helper function to find the 50% deposit selling plan
 export function findDepositSellingPlan(sellingPlans: any[]): string | null {
-  // Look for a selling plan that contains the specific identifier "3226403001"
+  console.log("Available selling plans:", JSON.stringify(sellingPlans, null, 2))
+
+  // First try to find a selling plan that contains the specific identifier "3226403001"
   const depositPlan = sellingPlans.find(
     (plan) =>
       plan.id.includes("3226403001") ||
@@ -287,12 +289,17 @@ export function findDepositSellingPlan(sellingPlans: any[]): string | null {
       (plan.description && plan.description.includes("3226403001")),
   )
 
-  // If no plan with the specific identifier is found, log a warning
-  if (!depositPlan && sellingPlans.length > 0) {
-    console.warn("No selling plan with identifier '3226403001' found. Available plans:", sellingPlans)
+  // If we found a plan, return its ID
+  if (depositPlan) {
+    console.log("Found deposit plan:", depositPlan)
+    return depositPlan.id
   }
 
-  return depositPlan ? depositPlan.id : null
+  // If no plan with the specific identifier is found, log a warning and return the hardcoded ID
+  console.warn("No selling plan with identifier '3226403001' found in API response. Using hardcoded ID.")
+
+  // Return the hardcoded selling plan ID that we know works
+  return "3226403001"
 }
 
 /**
