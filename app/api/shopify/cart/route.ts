@@ -8,6 +8,12 @@ export async function POST(request: Request) {
     // Use the provided endpoint
     const SHOPIFY_API_ENDPOINT = "https://golumio.myshopify.com/api/2023-10/graphql.json"
 
+    // Log environment variable status (without revealing values)
+    console.log("Environment variables status:", {
+      hasStorefrontToken: !!SHOPIFY_STOREFRONT_ACCESS_TOKEN,
+      apiEndpoint: SHOPIFY_API_ENDPOINT,
+    })
+
     // Validate environment variables
     if (!SHOPIFY_STOREFRONT_ACCESS_TOKEN) {
       console.error("Shopify access token is missing. Check your environment variables.")
@@ -22,6 +28,30 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Variant ID is required" }, { status: 400 })
     }
 
+    console.log("Cart creation request:", {
+      variantId,
+      quantity,
+      customAttributesCount: customAttributes.length,
+      hasSellingPlanId: !!sellingPlanId,
+      sellingPlanId: sellingPlanId || "Not provided",
+    })
+
+    // Prepare the cart input
+    const cartInput = {
+      lines: [
+        {
+          quantity,
+          merchandiseId: variantId,
+          attributes: customAttributes,
+        },
+      ],
+    }
+
+    // Only add selling plan ID if it's provided and valid
+    if (sellingPlanId) {
+      cartInput.lines[0].sellingPlanId = sellingPlanId
+    }
+
     // Create a cart using the Shopify Storefront API
     const response = await fetch(SHOPIFY_API_ENDPOINT, {
       method: "POST",
@@ -31,30 +61,21 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({
         query: `
-         mutation cartCreate($input: CartInput!) {
-           cartCreate(input: $input) {
-             cart {
-               id
-               checkoutUrl
-             }
-             userErrors {
-               field
-               message
-             }
-           }
-         }
-       `,
+          mutation cartCreate($input: CartInput!) {
+            cartCreate(input: $input) {
+              cart {
+                id
+                checkoutUrl
+              }
+              userErrors {
+                field
+                message
+              }
+            }
+          }
+        `,
         variables: {
-          input: {
-            lines: [
-              {
-                quantity,
-                merchandiseId: variantId,
-                attributes: customAttributes,
-                sellingPlanId: sellingPlanId, // Add selling plan ID to the cart line
-              },
-            ],
-          },
+          input: cartInput,
         },
       }),
     })
@@ -71,10 +92,11 @@ export async function POST(request: Request) {
 
     // Parse the response
     const data = await response.json()
+    console.log("Shopify cart creation response:", JSON.stringify(data))
 
     // Check for errors
     if (data.errors) {
-      console.error("Shopify cart creation errors:", data.errors)
+      console.error("Shopify cart creation GraphQL errors:", data.errors)
       return NextResponse.json({ error: "Shopify GraphQL errors", details: data.errors }, { status: 400 })
     }
 
@@ -88,6 +110,7 @@ export async function POST(request: Request) {
 
     // Validate cart data
     if (!data.data?.cartCreate?.cart?.id || !data.data?.cartCreate?.cart?.checkoutUrl) {
+      console.error("Invalid cart response from Shopify:", data)
       return NextResponse.json({ error: "Invalid cart response from Shopify" }, { status: 500 })
     }
 
