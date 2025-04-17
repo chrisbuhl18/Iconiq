@@ -34,6 +34,10 @@ export interface CartCreateResponse {
 /**
  * Creates a cart with the selected items
  * IMPORTANT: The selling plan ID is REQUIRED for the 50% deposit functionality
+ *
+ * For 50% deposit to work correctly, two things are needed:
+ * 1. The selling plan ID must be included (DEPOSIT_SELLING_PLAN_ID)
+ * 2. A custom attribute with key "_spp2-deposit" and value "1" should be included
  */
 export async function createCart(
   variantId: string,
@@ -43,11 +47,20 @@ export async function createCart(
 ): Promise<CartCreateResponse> {
   try {
     console.log(`Creating cart with variant ID: ${variantId}, quantity: ${quantity}, selling plan ID: ${sellingPlanId}`)
+    console.log(`Custom attributes:`, customAttributes)
 
     // Validate selling plan ID format
     if (!sellingPlanId || !sellingPlanId.startsWith("gid://shopify/SellingPlan/")) {
       console.error("Invalid selling plan ID format:", sellingPlanId)
       throw new Error("Invalid selling plan ID format. Must start with 'gid://shopify/SellingPlan/'")
+    }
+
+    // Check if _spp2-deposit property is included
+    const hasDepositProperty = customAttributes.some((attr) => attr.key === "_spp2-deposit" && attr.value === "1")
+    if (!hasDepositProperty) {
+      console.warn(
+        "_spp2-deposit property not found in custom attributes. This may be required for 50% deposit to work correctly.",
+      )
     }
 
     const response = await fetch("/api/shopify/cart", {

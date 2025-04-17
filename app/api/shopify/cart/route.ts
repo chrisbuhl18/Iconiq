@@ -56,8 +56,18 @@ export async function POST(request: Request) {
       ],
     }
 
-    // Add more detailed logging for the cart input
+    // Add more detailed logging for the cart input and custom attributes
     console.log("Cart input:", JSON.stringify(cartInput, null, 2))
+    console.log("Custom attributes:", JSON.stringify(customAttributes, null, 2))
+    console.log("Selling plan ID:", sellingPlanId)
+
+    // Check if _spp2-deposit property is included
+    const hasDepositProperty = customAttributes.some((attr: any) => attr.key === "_spp2-deposit" && attr.value === "1")
+    if (!hasDepositProperty) {
+      console.warn(
+        "_spp2-deposit property not found in custom attributes. This may be required for 50% deposit to work correctly.",
+      )
+    }
 
     // Create a cart using the Shopify Storefront API
     const response = await fetch(SHOPIFY_API_ENDPOINT, {
