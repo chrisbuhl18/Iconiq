@@ -2,9 +2,6 @@
  * Shopify API utilities for the Lumio pricing calculator
  */
 
-// Selling plan ID for 50% deposit option - this is REQUIRED
-export const DEPOSIT_SELLING_PLAN_ID = "gid://shopify/SellingPlan/3226403001"
-
 // Types for Shopify API responses
 export interface ShopifyProduct {
   id: string
@@ -32,48 +29,140 @@ export interface CartCreateResponse {
 }
 
 /**
+ * Fetches products from a specific collection by title
+ */
+export async function getProductsByCollection(collectionTitle: string): Promise<ShopifyProduct[]> {
+  try {
+    console.log(`Fetching products from collection: ${collectionTitle}`)
+
+    // Check if we're in a build/server environment without a proper URL
+    if (typeof window === "undefined") {
+      // We're in a server environment, but we can't make API calls during build
+      // Return empty products array to avoid build errors
+      console.log("Server environment detected, returning empty products array for build time")
+      return []
+    } else {
+      // We're in a browser environment, use relative URL
+      const response = await fetch("/api/shopify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query: `
+            query GetProductsByCollection($title: String!) {
+              collections(first: 1, query: $title) {
+                edges {
+                  node {
+                    title
+                    products(first: 10) {
+                      edges {
+                        node {
+                          id
+                          title
+                          description
+                          handle
+                          variants(first: 10) {
+                            edges {
+                              node {
+                                id
+                                title
+                                priceV2 {
+                                  amount
+                                  currencyCode
+                                }
+                                availableForSale
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          `,
+          variables: {
+            title: collectionTitle,
+          },
+        }),
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error(`API error (${response.status}):`, errorText)
+        throw new Error(`API error: ${response.status}`)
+      }
+
+      const data = await response.json()
+      console.log("API response:", data)
+
+      if (data.error) {
+        throw new Error(`API error: ${data.error}`)
+      }
+
+      if (
+        !data.data ||
+        !data.data.collections ||
+        !data.data.collections.edges ||
+        data.data.collections.edges.length === 0
+      ) {
+        throw new Error("Collection not found or unexpected API response structure")
+      }
+
+      const collection = data.data.collections.edges[0].node
+      console.log(`Found collection: ${collection.title}`)
+
+      if (!collection.products || !collection.products.edges || collection.products.edges.length === 0) {
+        throw new Error(`No products found in collection: ${collection.title}`)
+      }
+
+      // Transform the response to a simpler format
+      const products = collection.products.edges.map((edge: any) => {
+        const product = edge.node
+        return {
+          id: product.id,
+          title: product.title,
+          description: product.description,
+          handle: product.handle,
+          variants: product.variants.edges.map((variantEdge: any) => {
+            const variant = variantEdge.node
+            return {
+              id: variant.id,
+              title: variant.title,
+              price: variant.priceV2.amount,
+              available: variant.availableForSale,
+            }
+          }),
+        }
+      })
+
+      console.log(`Found ${products.length} products in collection ${collection.title}`)
+      return products
+    }
+  } catch (error) {
+    console.error("Error fetching products from collection:", error)
+    // Return empty array instead of throwing during build
+    if (typeof window === "undefined") {
+      console.log("Returning empty products array due to error during build")
+      return []
+    }
+    throw error
+  }
+}
+
+/**
  * Creates a cart with the selected items
- * IMPORTANT: The selling plan ID is REQUIRED for the 50% deposit functionality
  */
 export async function createCart(
   variantId: string,
   quantity = 1,
   customAttributes: Array<{ key: string; value: string }> = [],
-  sellingPlanId = DEPOSIT_SELLING_PLAN_ID, // Always use the deposit selling plan
+  sellingPlanId = "gid://shopify/SellingPlan/3226403001", // Default to 50% deposit plan
 ): Promise<CartCreateResponse> {
   try {
-    console.log(`Creating cart with variant ID: ${variantId}, quantity: ${quantity}, selling plan ID: ${sellingPlanId}`)
-    console.log(`Custom attributes:`, customAttributes)
-
-    // Add the _spp2-deposit property if using selling plan
-    if (sellingPlanId) {
-      console.log("Creating cart with selling plan ID for 50% deposit")
-
-      // Check if _spp2-deposit property is already included
-      const hasDepositProperty = customAttributes.some((attr) => attr.key === "_spp2-deposit" && attr.value === "1")
-
-      if (!hasDepositProperty) {
-        // Add the property
-        customAttributes = [
-          ...customAttributes,
-          {
-            key: "_spp2-deposit",
-            value: "1",
-          },
-        ]
-      }
-    }
-
-    // Get the current hostname for the API call
-    const hostname = window.location.hostname
-    const protocol = window.location.protocol
-    const baseUrl = `${protocol}//${hostname}`
-
-    // Use the current hostname for the API endpoint
-    const apiUrl = `${baseUrl}/api/shopify/cart`
-    console.log(`Using API endpoint: ${apiUrl}`)
-
-    const response = await fetch(apiUrl, {
+    const response = await fetch("/api/shopify/cart", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -82,26 +171,23 @@ export async function createCart(
         variantId,
         quantity,
         customAttributes,
-        sellingPlanId,
+        sellingPlanId, // Add selling plan ID to the request
       }),
     })
 
     if (!response.ok) {
-      const errorText = await response.text()
-      console.error(`Cart API error (${response.status}):`, errorText)
-      throw new Error(`API error: ${response.status} - ${errorText}`)
+      const errorData = await response.json().catch(() => null)
+      const errorMessage = errorData?.error || `API error: ${response.status}`
+      throw new Error(errorMessage)
     }
 
     const data = await response.json()
-    console.log("Cart creation response:", data)
 
     if (data.error) {
-      console.error("Cart creation error:", data.error)
       throw new Error(data.error)
     }
 
     if (!data.cartId || !data.checkoutUrl) {
-      console.error("Invalid cart response:", data)
       throw new Error("Invalid cart response")
     }
 

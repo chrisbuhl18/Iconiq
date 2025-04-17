@@ -23,7 +23,7 @@ import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 import type { ReactNode } from "react"
 import type { ShopifyProduct } from "@/lib/shopify"
-import { createCart, DEPOSIT_SELLING_PLAN_ID } from "@/lib/shopify"
+import { createCart } from "@/lib/shopify"
 // First, import the AnimationExamples component at the top of the file
 import AnimationExamples from "@/components/animation-examples"
 
@@ -334,7 +334,9 @@ export default function AvatarPricingCalculator({
 
       if (usingFallback) {
         // We're using fallback data, show an alert
-        alert(`This would add the ${selectedPackage.name} package to your cart. Total: $${totalPrice}`)
+        alert(
+          `This would add the ${selectedPackage.name} package to your cart with 50% deposit option. Total: ${totalPrice / 2}`,
+        )
         return
       }
 
@@ -348,24 +350,14 @@ export default function AvatarPricingCalculator({
       const variantId = product.variants[0].id
       console.log(`Selected variant ID: ${variantId}`)
 
-      // Create custom attributes for the cart
-      const customAttributes = [
-        {
-          key: "_spp2-deposit",
-          value: "1",
-        },
-      ]
+      // Hardcoded selling plan ID for 50% deposit
+      const sellingPlanId = "gid://shopify/SellingPlan/3226403001"
 
-      try {
-        console.log("Creating cart with selling plan ID for 50% deposit")
-        const cart = await createCart(variantId, 1, customAttributes, DEPOSIT_SELLING_PLAN_ID)
+      // Create a cart with the selected variant and selling plan
+      const cart = await createCart(variantId, 1, [], sellingPlanId)
 
-        // Redirect to checkout
-        window.location.href = cart.checkoutUrl
-      } catch (error) {
-        console.error("Error creating cart with selling plan ID:", error)
-        setError(`Error: ${error instanceof Error ? error.message : String(error)}`)
-      }
+      // Redirect to checkout
+      window.location.href = cart.checkoutUrl
     } catch (error) {
       console.error("Error adding to cart:", error)
       setError(`Error: ${error instanceof Error ? error.message : String(error)}`)
@@ -498,12 +490,8 @@ export default function AvatarPricingCalculator({
             ) : (
               <>
                 <h3 className="text-5xl font-bold text-english-violet">${totalPrice}</h3>
-                <div className="mt-2 inline-flex items-center px-3 py-1 rounded-full bg-english-violet/10 text-english-violet text-sm font-medium">
-                  <span className="mr-1 font-bold">50% Deposit:</span>
-                  <span>${Math.round(totalPrice / 2)} today</span>
-                </div>
-                <p className="mt-2 text-sm text-english-violet/70">
-                  Remaining 50% will be auto-charged in 20 days or upon project completion.
+                <p className="mt-1 text-sm text-english-violet/60">
+                  50% now, rest auto-charged in 20 days or at project end.
                 </p>
               </>
             )}
