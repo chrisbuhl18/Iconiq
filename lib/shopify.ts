@@ -159,18 +159,31 @@ export async function createCart(
   variantId: string,
   quantity = 1,
   customAttributes: Array<{ key: string; value: string }> = [],
+  sellingPlanId: string | null = null, // Add this parameter
 ): Promise<CartCreateResponse> {
   try {
+    // Prepare the cart input with the selling plan ID if provided
+    const cartInput: any = {
+      lines: [
+        {
+          quantity,
+          merchandiseId: variantId,
+          attributes: customAttributes,
+        },
+      ],
+    }
+
+    // Add selling plan ID to the line item if provided
+    if (sellingPlanId) {
+      cartInput.lines[0].sellingPlanId = sellingPlanId
+    }
+
     const response = await fetch("/api/shopify/cart", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        variantId,
-        quantity,
-        customAttributes,
-      }),
+      body: JSON.stringify(cartInput),
     })
 
     if (!response.ok) {
@@ -194,6 +207,86 @@ export async function createCart(
     console.error("Error creating cart:", error)
     throw error
   }
+}
+
+// Add a new function to fetch selling plans for a product
+export async function getSellingPlansForProduct(productId: string): Promise<any[]> {
+  try {
+    const response = await fetch("/api/shopify", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        query: `
+          query GetSellingPlans($productId: ID!) {
+            product(id: $productId) {
+              sellingPlanGroups(first: 5) {
+                edges {
+                  node {
+                    name
+                    sellingPlans(first: 5) {
+                      edges {
+                        node {
+                          id
+                          name
+                          description
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        `,
+        variables: {
+          productId,
+        },
+      }),
+    })
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`)
+    }
+
+    const data = await response.json()
+
+    if (data.errors) {
+      throw new Error(data.errors[0].message)
+    }
+
+    // Extract and return the selling plans
+    const sellingPlanGroups = data.data?.product?.sellingPlanGroups?.edges || []
+    const allSellingPlans = []
+
+    for (const group of sellingPlanGroups) {
+      const plans = group.node.sellingPlans.edges.map((edge: any) => ({
+        id: edge.node.id,
+        name: edge.node.name,
+        description: edge.node.description,
+        groupName: group.node.name,
+      }))
+      allSellingPlans.push(...plans)
+    }
+
+    return allSellingPlans
+  } catch (error) {
+    console.error("Error fetching selling plans:", error)
+    return []
+  }
+}
+
+// Add a helper function to find the 50% deposit selling plan
+export function findDepositSellingPlan(sellingPlans: any[]): string | null {
+  // Look for a selling plan that mentions "50%" and "deposit"
+  const depositPlan = sellingPlans.find(
+    (plan) =>
+      (plan.name.toLowerCase().includes("50%") || plan.description.toLowerCase().includes("50%")) &&
+      (plan.name.toLowerCase().includes("deposit") || plan.description.toLowerCase().includes("deposit")),
+  )
+
+  return depositPlan ? depositPlan.id : null
 }
 
 /**
@@ -396,5 +489,42 @@ export function findVariantId(productMap: any, packageName: string, userCount: n
   } catch (error) {
     console.error("Error finding variant ID:", error)
     throw error
+  }
+}
+
+/**
+ * Finds the variant ID that matches the user count
+ *
+ * @param product - The Shopify product containing variants
+ * @param userCount - The number of users selected
+ * @returns The variant ID that matches the user count, or null if no match is found
+ */
+export function findVariantForUserCount(product: any, userCount: number): string | null {
+  try {
+    if (!product || !product.variants || !product.variants.edges) {
+      console.error("Invalid product structure:", product)
+      return null
+    }
+
+    // First, try to find an exact match
+    const matchingVariant = product.variants.edges.find((edge: any) => {
+      const variant = edge.node
+      return (
+        variant.selectedOptions &&
+        variant.selectedOptions.some(
+          (option: any) => option.name === "User Count" && option.value === String(userCount),
+        )
+      )
+    })
+
+    if (matchingVariant) {
+      return matchingVariant.node.id
+    }
+
+    console.warn(`No exact variant found for user count: ${userCount}.`)
+    return null
+  } catch (error) {
+    console.error("Error finding variant ID for user count:", error)
+    return null
   }
 }

@@ -27,6 +27,9 @@ import type { ShopifyProduct } from "@/lib/shopify"
 import { createCart } from "@/lib/shopify"
 import AnimationExamples from "@/components/animation-examples"
 
+// First, import the new functions at the top of the file
+import { findVariantForUserCount, getSellingPlansForProduct, findDepositSellingPlan } from "@/lib/shopify"
+
 interface PricingOption {
   id: string
   name: string
@@ -326,91 +329,6 @@ export default function SignaturePricingCalculator({
    * @param userCount - The number of users selected
    * @returns The variant ID that matches the user count, or null if no match is found
    */
-  const findVariantForUserCount = (product: ShopifyProduct, userCount: number): string | null => {
-    if (!product || !product.variants || product.variants.length === 0) {
-      console.error("Invalid product or no variants available", product)
-      return null
-    }
-
-    // For user counts > 50, look for a "custom" variant
-    if (userCount > 50) {
-      console.log(`Looking for custom variant for user count > 50: ${userCount}`)
-      const customVariant = product.variants.find(
-        (variant) =>
-          variant.title.toLowerCase().includes("custom") ||
-          (variant.selectedOptions &&
-            variant.selectedOptions.some((option) => option.value.toLowerCase().includes("custom"))),
-      )
-
-      if (customVariant) {
-        console.log(`Found custom variant: ${customVariant.id}`)
-        return customVariant.id
-      }
-
-      console.log("No custom variant found, looking for highest user count variant")
-      // If no custom variant found, use the highest user count variant
-      const sortedVariants = [...product.variants].sort((a, b) => {
-        const aCount = extractUserCount(a)
-        const bCount = extractUserCount(b)
-        return bCount - aCount
-      })
-
-      if (sortedVariants.length > 0) {
-        console.log(
-          `Using highest user count variant: ${sortedVariants[0].id} (${extractUserCount(sortedVariants[0])} users)`,
-        )
-        return sortedVariants[0]?.id || null
-      }
-
-      return null
-    }
-
-    // Try to find an exact match for the user count
-    console.log(`Looking for exact match for user count: ${userCount}`)
-    const exactMatch = product.variants.find((variant) => {
-      if (!variant.selectedOptions) return false
-      return variant.selectedOptions.some(
-        (option) => option.name === "User Count" && option.value === userCount.toString(),
-      )
-    })
-
-    if (exactMatch) {
-      console.log(`Found exact match variant: ${exactMatch.id}`)
-      return exactMatch.id
-    }
-
-    console.log(`No exact match found, looking for closest match below ${userCount}`)
-    // If no exact match, find the closest match below the requested count
-    const validVariants = product.variants
-      .filter((variant) => {
-        if (!variant.selectedOptions) return false
-        const countOption = variant.selectedOptions.find((option) => option.name === "User Count")
-        if (!countOption) return false
-        const count = Number.parseInt(countOption.value, 10)
-        return !isNaN(count) && count <= userCount
-      })
-      .sort((a, b) => {
-        const aCount = extractUserCount(a)
-        const bCount = extractUserCount(b)
-        return bCount - aCount // Sort in descending order
-      })
-
-    if (validVariants.length > 0) {
-      console.log(`Using closest match variant: ${validVariants[0].id} (${extractUserCount(validVariants[0])} users)`)
-      return validVariants[0]?.id || null
-    }
-
-    // Fallback to the first variant if no match is found
-    console.log(`No matching variant found, using first variant: ${product.variants[0].id}`)
-    return product.variants[0].id
-  }
-
-  /**
-   * Helper function to extract user count from variant
-   *
-   * @param variant - The Shopify variant
-   * @returns The user count as a number, or 0 if not found
-   */
   const extractUserCount = (variant: any): number => {
     if (!variant.selectedOptions) return 0
 
@@ -443,7 +361,7 @@ export default function SignaturePricingCalculator({
       if (usingFallback) {
         // We're using fallback data, show an alert
         alert(
-          `This would add the ${selectedPackage.name} package with ${userCount} users to your cart. Total: ${totalPrice}`,
+          `This would add the ${selectedPackage.name} package with ${userCount} users with 50% deposit option. Total: ${totalPrice}`,
         )
         return
       }
@@ -470,8 +388,14 @@ export default function SignaturePricingCalculator({
         },
       ]
 
-      // Create a cart with the selected variant
-      const cart = await createCart(variantId, 1, customAttributes)
+      // Fetch selling plans for this product to find the 50% deposit option
+      const sellingPlans = await getSellingPlansForProduct(selectedAnimation)
+      const depositSellingPlanId = findDepositSellingPlan(sellingPlans)
+
+      console.log(`Found deposit selling plan: ${depositSellingPlanId}`)
+
+      // Create a cart with the selected variant and the 50% deposit selling plan
+      const cart = await createCart(variantId, 1, customAttributes, depositSellingPlanId)
 
       // Redirect to checkout
       window.location.href = cart.checkoutUrl

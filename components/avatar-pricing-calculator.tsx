@@ -27,6 +27,9 @@ import { createCart } from "@/lib/shopify"
 // First, import the AnimationExamples component at the top of the file
 import AnimationExamples from "@/components/animation-examples"
 
+// First, import the new functions at the top of the file
+import { getSellingPlansForProduct, findDepositSellingPlan } from "@/lib/shopify"
+
 interface PricingOption {
   id: string
   name: string
@@ -334,7 +337,9 @@ export default function AvatarPricingCalculator({
 
       if (usingFallback) {
         // We're using fallback data, show an alert
-        alert(`This would add the ${selectedPackage.name} package to your cart. Total: ${totalPrice}`)
+        alert(
+          `This would add the ${selectedPackage.name} package to your cart with 50% deposit option. Total: ${totalPrice}`,
+        )
         return
       }
 
@@ -348,8 +353,14 @@ export default function AvatarPricingCalculator({
       const variantId = product.variants[0].id
       console.log(`Selected variant ID: ${variantId}`)
 
-      // Create a cart with the selected variant
-      const cart = await createCart(variantId, 1)
+      // Fetch selling plans for this product to find the 50% deposit option
+      const sellingPlans = await getSellingPlansForProduct(selectedAnimation)
+      const depositSellingPlanId = findDepositSellingPlan(sellingPlans)
+
+      console.log(`Found deposit selling plan: ${depositSellingPlanId}`)
+
+      // Create a cart with the selected variant and the 50% deposit selling plan
+      const cart = await createCart(variantId, 1, [], depositSellingPlanId)
 
       // Redirect to checkout
       window.location.href = cart.checkoutUrl

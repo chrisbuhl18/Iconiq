@@ -15,11 +15,27 @@ export async function POST(request: Request) {
     }
 
     // Get the cart details from the request body
-    const { variantId, quantity = 1, customAttributes = [] } = await request.json()
+    const { variantId, quantity = 1, customAttributes = [], sellingPlanId = null } = await request.json()
 
     // Validate required fields
     if (!variantId) {
       return NextResponse.json({ error: "Variant ID is required" }, { status: 400 })
+    }
+
+    // Prepare the cart input
+    const cartInput: any = {
+      lines: [
+        {
+          quantity,
+          merchandiseId: variantId,
+          attributes: customAttributes,
+        },
+      ],
+    }
+
+    // Add selling plan ID if provided
+    if (sellingPlanId) {
+      cartInput.lines[0].sellingPlanId = sellingPlanId
     }
 
     // Create a cart using the Shopify Storefront API
@@ -45,15 +61,7 @@ export async function POST(request: Request) {
           }
         `,
         variables: {
-          input: {
-            lines: [
-              {
-                quantity,
-                merchandiseId: variantId,
-                attributes: customAttributes,
-              },
-            ],
-          },
+          input: cartInput,
         },
       }),
     })
