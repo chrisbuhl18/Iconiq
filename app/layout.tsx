@@ -9,7 +9,7 @@ const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfa
 
 export const metadata: Metadata = {
   title: {
-    default: "Lumio | Animated Email Elements",
+    default: "Lumio | Animated Email Avatars",
     template: "%s | Lumio",
   },
   description: "Bring your emails to life with animated elements that create memorable brand impressions.",
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "https://lumio.vercel.app",
-    title: "Lumio | Animated Email Elements",
+    title: "Lumio | Animated Email Avatars",
     description: "Bring your emails to life with animated elements that create memorable brand impressions.",
     siteName: "Lumio",
     images: [

@@ -70,7 +70,7 @@ const FALLBACK_OPTIONS = [
 ]
 
 // Default price per user
-const USER_PRICE = 100
+const USER_PRICE = 50
 
 export default function SignaturePricingCalculator({
   title,

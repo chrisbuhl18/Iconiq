@@ -42,7 +42,7 @@ export default function Home() {
             </div>
 
             {/* Mobile-only product toggle - right aligned */}
-            <div className="md:hidden flex items-center space-x-1 bg-white/20 rounded-full p-1">
+            <div className="md:hidden flex items-center space-x-1 bg-white/20 rounded-full p-1 mr-4">
               <Link href="/avatars">
                 <div className="px-3 py-1.5 text-sm rounded-full transition-all hover:bg-periwinkle hover:text-english-violet">
                   Avatars
