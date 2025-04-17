@@ -21,8 +21,8 @@ export default function Home() {
             {/* Logo - always on the left */}
             <div className="flex-shrink-0">
               <Link href="/">
-                <div style={{ transform: "scale(0.6)", transformOrigin: "left center" }}>
-                  <Logo size="medium" variant="dark" className="md:hidden" />
+                <div style={{ transform: "scale(0.8)", transformOrigin: "left center" }}>
+                  <Logo size="large" variant="dark" className="md:hidden" />
                   <Logo size="large" variant="dark" className="hidden md:block" />
                 </div>
               </Link>
@@ -45,12 +45,12 @@ export default function Home() {
             {/* Mobile-only product toggle - right aligned */}
             <div className="md:hidden flex items-center space-x-1 bg-white/20 rounded-full p-1 mr-2">
               <Link href="/avatars">
-                <div className="px-2 py-1 text-xs rounded-full transition-all hover:bg-periwinkle hover:text-english-violet">
+                <div className="px-3 py-1.5 text-sm rounded-full transition-all hover:bg-periwinkle hover:text-english-violet">
                   Avatars
                 </div>
               </Link>
               <Link href="/signatures">
-                <div className="px-2 py-1 text-xs rounded-full transition-all hover:bg-misty-rose hover:text-english-violet">
+                <div className="px-3 py-1.5 text-sm rounded-full transition-all hover:bg-misty-rose hover:text-english-violet">
                   Signatures
                 </div>
               </Link>

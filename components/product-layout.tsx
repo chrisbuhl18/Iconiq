@@ -56,11 +56,11 @@ export default function ProductLayout({
             </div>
 
             {/* Mobile-only product toggle - right aligned */}
-            <div className="md:hidden flex items-center space-x-1 bg-gray-100 rounded-full p-1 mr-2">
+            <div className="md:hidden flex items-center space-x-1 bg-gray-100 rounded-full p-1 mr-4">
               <Link href="/avatars">
                 <div
                   className={cn(
-                    "px-2 py-1 text-xs rounded-full transition-all",
+                    "px-3 py-1.5 text-sm rounded-full transition-all",
                     productType === "avatars" ? "bg-periwinkle text-english-violet font-medium" : "hover:bg-gray-200",
                   )}
                 >
@@ -70,7 +70,7 @@ export default function ProductLayout({
               <Link href="/signatures">
                 <div
                   className={cn(
-                    "px-2 py-1 text-xs rounded-full transition-all",
+                    "px-3 py-1.5 text-sm rounded-full transition-all",
                     productType === "signatures"
                       ? "bg-misty-rose text-english-violet font-medium"
                       : "hover:bg-gray-200",
