@@ -277,14 +277,20 @@ export async function getSellingPlansForProduct(productId: string): Promise<any[
   }
 }
 
-// Add a helper function to find the 50% deposit selling plan
+// Update the helper function to find the 50% deposit selling plan
 export function findDepositSellingPlan(sellingPlans: any[]): string | null {
-  // Look for a selling plan that mentions "50%" and "deposit"
+  // Look for a selling plan that contains the specific identifier "3226403001"
   const depositPlan = sellingPlans.find(
     (plan) =>
-      (plan.name.toLowerCase().includes("50%") || plan.description.toLowerCase().includes("50%")) &&
-      (plan.name.toLowerCase().includes("deposit") || plan.description.toLowerCase().includes("deposit")),
+      plan.id.includes("3226403001") ||
+      (plan.name && plan.name.includes("3226403001")) ||
+      (plan.description && plan.description.includes("3226403001")),
   )
+
+  // If no plan with the specific identifier is found, log a warning
+  if (!depositPlan && sellingPlans.length > 0) {
+    console.warn("No selling plan with identifier '3226403001' found. Available plans:", sellingPlans)
+  }
 
   return depositPlan ? depositPlan.id : null
 }
