@@ -29,7 +29,7 @@ export default function Home() {
             </div>
 
             {/* Desktop-only center navigation */}
-            <div className="hidden md:flex items-center space-x-2 bg-white/20 rounded-full p-1">
+            <div className="hidden md:absolute md:left-1/2 md:transform md:-translate-x-1/2 md:flex items-center space-x-2 bg-white/20 rounded-full p-1">
               <Link href="/avatars">
                 <div className="px-4 py-2 rounded-full transition-all hover:bg-periwinkle hover:text-english-violet">
                   Avatars

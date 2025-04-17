@@ -41,34 +41,6 @@ interface AvatarPricingCalculatorProps {
   products: ShopifyProduct[] | null
 }
 
-// Fallback data for when API fails
-const FALLBACK_OPTIONS = [
-  {
-    id: "starter",
-    name: "Starter",
-    description:
-      "Pre-designed animation template with your brand colors. Perfect for teams looking for a professional animated presence without custom design work.",
-    price: 950,
-    handle: "email-avatar-starter",
-  },
-  {
-    id: "essential",
-    name: "Essential",
-    description:
-      "Tailored animation designed specifically for your brand. Includes custom movement patterns and transitions that reflect your brand personality.",
-    price: 1450,
-    handle: "email-avatar-custom",
-  },
-  {
-    id: "premium",
-    name: "Premium",
-    description:
-      "Fully bespoke animation with advanced effects, multiple elements, and premium transitions. Our highest tier for brands that want to make a lasting impression.",
-    price: 1500,
-    handle: "email-avatar-premium",
-  },
-]
-
 export default function AvatarPricingCalculator({
   title,
   description,
@@ -80,7 +52,6 @@ export default function AvatarPricingCalculator({
   const [totalPrice, setTotalPrice] = useState<number>(0)
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
-  const [usingFallback, setUsingFallback] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(true)
 
   // Fetch products if not provided
@@ -194,19 +165,6 @@ export default function AvatarPricingCalculator({
       } catch (error) {
         console.error("Error fetching products:", error)
         setError(`Error fetching products: ${error instanceof Error ? error.message : String(error)}`)
-        setUsingFallback(true)
-
-        // Sort fallback options to ensure correct order
-        const sortedFallbackOptions = [...FALLBACK_OPTIONS].sort((a, b) => {
-          const order = { Starter: 1, Essential: 2, Premium: 3 }
-          return (order[a.name as keyof typeof order] || 99) - (order[b.name as keyof typeof order] || 99)
-        })
-
-        // Use fallback data
-        setAnimationPackages(sortedFallbackOptions)
-        // Remove default selection
-        // setSelectedAnimation(sortedFallbackOptions[0].id)
-        // setTotalPrice(sortedFallbackOptions[0].price)
       } finally {
         setLoading(false)
       }
@@ -217,14 +175,9 @@ export default function AvatarPricingCalculator({
 
   // Process products when they're available
   useEffect(() => {
-    if (!products && !usingFallback) return
+    if (!products) return
 
     try {
-      if (usingFallback) {
-        // Already set up in the catch block above
-        return
-      }
-
       // Format products for the calculator with fixed titles
       const productTitles = ["Starter", "Essential", "Premium"]
       const formattedPackages = products!.map((product, index) => {
@@ -250,27 +203,11 @@ export default function AvatarPricingCalculator({
       })
 
       setAnimationPackages(formattedPackages)
-      // Remove default selection
-      // setSelectedAnimation(formattedPackages[0].id)
-      // setTotalPrice(formattedPackages[0].price)
     } catch (error) {
       console.error("Error processing products:", error)
       setError(`Error: ${error instanceof Error ? error.message : String(error)}`)
-
-      // Sort fallback options to ensure correct order
-      const sortedFallbackOptions = [...FALLBACK_OPTIONS].sort((a, b) => {
-        const order = { Starter: 1, Essential: 2, Premium: 3 }
-        return (order[a.name as keyof typeof order] || 99) - (order[b.name as keyof typeof order] || 99)
-      })
-
-      // Use fallback data
-      setUsingFallback(true)
-      setAnimationPackages(sortedFallbackOptions)
-      // Remove default selection
-      // setSelectedAnimation(sortedFallbackOptions[0].id)
-      // setTotalPrice(sortedFallbackOptions[0].price)
     }
-  }, [products, usingFallback])
+  }, [products])
 
   // Update total price when selected animation changes
   useEffect(() => {
@@ -332,14 +269,6 @@ export default function AvatarPricingCalculator({
         throw new Error("Selected package not found")
       }
 
-      if (usingFallback) {
-        // We're using fallback data, show an alert
-        alert(
-          `This would add the ${selectedPackage.name} package to your cart with 50% deposit option. Total: ${totalPrice / 2}`,
-        )
-        return
-      }
-
       // Find the product in the original products array
       const product = products?.find((p) => p.id === selectedAnimation)
       if (!product || product.variants.length === 0) {
@@ -395,15 +324,6 @@ export default function AvatarPricingCalculator({
             <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded relative">
               <strong className="font-bold">Note:</strong>
               <span className="block sm:inline"> {error}</span>
-            </div>
-          </div>
-        )}
-
-        {usingFallback && !error && (
-          <div className="max-w-4xl mx-auto mb-8">
-            <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded relative">
-              <strong className="font-bold">Note:</strong>
-              <span className="block sm:inline"> Using fallback pricing data. Checkout functionality is limited.</span>
             </div>
           </div>
         )}
@@ -489,13 +409,18 @@ export default function AvatarPricingCalculator({
               <h3 className="text-5xl font-bold text-english-violet">Select a Package</h3>
             ) : (
               <>
-                <h3 className="text-5xl font-bold text-english-violet">${totalPrice}</h3>
-                <p className="mt-1 text-sm text-english-violet/60">
-                  50% now, remaining balanced auto-charged in 20 days or at project end.
+                <h3 className="text-5xl font-bold text-english-violet mb-3">${totalPrice}</h3>
+                <div className="inline-block bg-black/10 rounded-full px-6 py-2 mb-3">
+                  <span className="font-medium text-english-violet">
+                    50% Deposit: ${Math.round(totalPrice / 2)} today
+                  </span>
+                </div>
+                <p className="text-english-violet/80 mb-6">
+                  Remaining 50% will be auto-charged in 20 days or upon project completion.
                 </p>
               </>
             )}
-            <p className="mt-3 text-english-violet/70">
+            <p className="text-english-violet/70">
               All packages include installation and 2 rounds of revision. If additional revisions are needed, we'll
               provide a personalized quote.
             </p>
