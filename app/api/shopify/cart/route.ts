@@ -28,29 +28,36 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Variant ID is required" }, { status: 400 })
     }
 
+    // Validate selling plan ID - it's REQUIRED for the 50% deposit functionality
+    if (!sellingPlanId || !sellingPlanId.startsWith("gid://shopify/SellingPlan/")) {
+      console.error("Invalid or missing selling plan ID:", sellingPlanId)
+      return NextResponse.json(
+        { error: "Selling plan ID is required and must be in the correct format" },
+        { status: 400 },
+      )
+    }
+
     console.log("Cart creation request:", {
       variantId,
       quantity,
       customAttributesCount: customAttributes.length,
-      hasSellingPlanId: !!sellingPlanId,
-      sellingPlanId: sellingPlanId || "Not provided",
+      sellingPlanId,
     })
 
-    // Prepare the cart input
+    // Prepare the cart input with the selling plan ID
     const cartInput = {
       lines: [
         {
           quantity,
           merchandiseId: variantId,
           attributes: customAttributes,
+          sellingPlanId: sellingPlanId, // Always include the selling plan ID
         },
       ],
     }
 
-    // Only add selling plan ID if it's provided and valid
-    if (sellingPlanId) {
-      cartInput.lines[0].sellingPlanId = sellingPlanId
-    }
+    // Add more detailed logging for the cart input
+    console.log("Cart input:", JSON.stringify(cartInput, null, 2))
 
     // Create a cart using the Shopify Storefront API
     const response = await fetch(SHOPIFY_API_ENDPOINT, {
@@ -92,7 +99,7 @@ export async function POST(request: Request) {
 
     // Parse the response
     const data = await response.json()
-    console.log("Shopify cart creation response:", JSON.stringify(data))
+    console.log("Shopify cart creation response:", JSON.stringify(data, null, 2))
 
     // Check for errors
     if (data.errors) {

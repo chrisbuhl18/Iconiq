@@ -334,9 +334,7 @@ export default function AvatarPricingCalculator({
 
       if (usingFallback) {
         // We're using fallback data, show an alert
-        alert(
-          `This would add the ${selectedPackage.name} package to your cart with 50% deposit option. Total: ${totalPrice / 2}`,
-        )
+        alert(`This would add the ${selectedPackage.name} package to your cart. Total: $${totalPrice}`)
         return
       }
 
@@ -350,14 +348,23 @@ export default function AvatarPricingCalculator({
       const variantId = product.variants[0].id
       console.log(`Selected variant ID: ${variantId}`)
 
-      // Hardcoded selling plan ID for 50% deposit
-      const sellingPlanId = DEPOSIT_SELLING_PLAN_ID
+      // Try to create a cart without the selling plan ID first
+      try {
+        console.log("Attempting to create cart without selling plan ID")
+        const cart = await createCart(variantId, 1, [])
 
-      // Create a cart with the selected variant and selling plan
-      const cart = await createCart(variantId, 1, [], sellingPlanId)
+        // Redirect to checkout
+        window.location.href = cart.checkoutUrl
+      } catch (cartError) {
+        console.error("Error creating cart without selling plan ID:", cartError)
 
-      // Redirect to checkout
-      window.location.href = cart.checkoutUrl
+        // If that fails, try with the selling plan ID
+        console.log("Attempting to create cart with selling plan ID")
+        const cart = await createCart(variantId, 1, [], DEPOSIT_SELLING_PLAN_ID)
+
+        // Redirect to checkout
+        window.location.href = cart.checkoutUrl
+      }
     } catch (error) {
       console.error("Error adding to cart:", error)
       setError(`Error: ${error instanceof Error ? error.message : String(error)}`)
