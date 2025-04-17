@@ -490,7 +490,7 @@ export default function AvatarPricingCalculator({
             ) : (
               <>
                 <h3 className="text-5xl font-bold text-english-violet">${totalPrice}</h3>
-                <p className="mt-1 text-sm text-english-violet/60">50% today and 50% in 15 days</p>
+                <p className="mt-1 text-sm text-english-violet/60">50% now, rest auto-charged in 20 days or at project end.</p>
               </>
             )}
             <p className="mt-3 text-english-violet/70">
