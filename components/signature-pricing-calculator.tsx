@@ -257,8 +257,6 @@ export default function SignaturePricingCalculator({
    * This function is responsible for selecting the correct Shopify variant based on the user count.
    * It's critical for ensuring the correct price is charged at checkout.
    *
-   * DO NOT MODIFY without thorough testing with actual Shopify variants.
-   *
    * @param product - The Shopify product containing variants
    * @param userCount - The number of users selected
    * @returns The variant ID that matches the user count, or null if no match is found
@@ -269,57 +267,34 @@ export default function SignaturePricingCalculator({
       return null
     }
 
-    // For user counts > 50, specifically look for a "Custom Quote" variant
+    // For user counts > 50, use the specific Custom Quote variant IDs
     if (userCount > 50) {
-      console.log(`Looking for Custom Quote variant for user count > 50: ${userCount}`)
+      console.log(`Using Custom Quote variant for user count > 50: ${userCount}`)
 
-      // First, try to find a variant with "Custom Quote" in the title
-      const customQuoteVariant = product.variants.find((variant) => variant.title.includes("Custom Quote"))
-
-      if (customQuoteVariant) {
-        console.log(`Found Custom Quote variant by title: ${customQuoteVariant.id}`)
-        return customQuoteVariant.id
-      }
-
-      // If not found by title, try to find by selectedOptions
-      const customVariantByOption = product.variants.find(
-        (variant) =>
-          variant.selectedOptions &&
-          variant.selectedOptions.some(
-            (option) =>
-              (option.name === "User Count" && option.value.includes("Custom")) || option.value === "Custom Quote",
-          ),
-      )
-
-      if (customVariantByOption) {
-        console.log(`Found Custom Quote variant by option: ${customVariantByOption.id}`)
-        return customVariantByOption.id
-      }
-
-      // If still not found, look for any variant with "custom" in the title (case insensitive)
-      const fallbackCustomVariant = product.variants.find((variant) => variant.title.toLowerCase().includes("custom"))
-
-      if (fallbackCustomVariant) {
-        console.log(`Found fallback custom variant: ${fallbackCustomVariant.id}`)
-        return fallbackCustomVariant.id
-      }
-
-      console.log("No Custom Quote variant found, looking for highest user count variant as fallback")
-      // If no custom variant found, use the highest user count variant as a fallback
-      const sortedVariants = [...product.variants].sort((a, b) => {
-        const aCount = extractUserCount(a)
-        const bCount = extractUserCount(b)
-        return bCount - aCount
+      // Determine which product this is (Starter, Essential, Premium)
+      const productType = getDisplayTitle({
+        id: product.id,
+        name: product.title,
+        description: product.description || "",
+        price: 0,
+        handle: product.handle,
       })
 
-      if (sortedVariants.length > 0) {
-        console.log(
-          `Using highest user count variant as fallback: ${sortedVariants[0].id} (${extractUserCount(sortedVariants[0])} users)`,
-        )
-        return sortedVariants[0]?.id || null
+      // Use the specific variant ID based on product type
+      if (productType === "Premium") {
+        console.log("Using Premium Custom Quote variant ID: 44872062795961")
+        return "gid://shopify/ProductVariant/44872062795961"
+      } else if (productType === "Essential") {
+        console.log("Using Essential Custom Quote variant ID: 44872056373433")
+        return "gid://shopify/ProductVariant/44872056373433"
+      } else if (productType === "Starter") {
+        console.log("Using Starter Custom Quote variant ID: 44872043167929")
+        return "gid://shopify/ProductVariant/44872043167929"
       }
 
-      return null
+      // If we couldn't determine the product type, fall back to the first variant
+      console.warn("Could not determine product type for custom quote, using first variant")
+      return product.variants[0].id
     }
 
     // Try to find an exact match for the user count
