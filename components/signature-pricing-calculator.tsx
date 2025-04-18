@@ -269,23 +269,43 @@ export default function SignaturePricingCalculator({
       return null
     }
 
-    // For user counts > 50, look for a "custom" variant
+    // For user counts > 50, specifically look for a "Custom Quote" variant
     if (userCount > 50) {
-      console.log(`Looking for custom variant for user count > 50: ${userCount}`)
-      const customVariant = product.variants.find(
-        (variant) =>
-          variant.title.toLowerCase().includes("custom") ||
-          (variant.selectedOptions &&
-            variant.selectedOptions.some((option) => option.value.toLowerCase().includes("custom"))),
-      )
+      console.log(`Looking for Custom Quote variant for user count > 50: ${userCount}`)
 
-      if (customVariant) {
-        console.log(`Found custom variant: ${customVariant.id}`)
-        return customVariant.id
+      // First, try to find a variant with "Custom Quote" in the title
+      const customQuoteVariant = product.variants.find((variant) => variant.title.includes("Custom Quote"))
+
+      if (customQuoteVariant) {
+        console.log(`Found Custom Quote variant by title: ${customQuoteVariant.id}`)
+        return customQuoteVariant.id
       }
 
-      console.log("No custom variant found, looking for highest user count variant")
-      // If no custom variant found, use the highest user count variant
+      // If not found by title, try to find by selectedOptions
+      const customVariantByOption = product.variants.find(
+        (variant) =>
+          variant.selectedOptions &&
+          variant.selectedOptions.some(
+            (option) =>
+              (option.name === "User Count" && option.value.includes("Custom")) || option.value === "Custom Quote",
+          ),
+      )
+
+      if (customVariantByOption) {
+        console.log(`Found Custom Quote variant by option: ${customVariantByOption.id}`)
+        return customVariantByOption.id
+      }
+
+      // If still not found, look for any variant with "custom" in the title (case insensitive)
+      const fallbackCustomVariant = product.variants.find((variant) => variant.title.toLowerCase().includes("custom"))
+
+      if (fallbackCustomVariant) {
+        console.log(`Found fallback custom variant: ${fallbackCustomVariant.id}`)
+        return fallbackCustomVariant.id
+      }
+
+      console.log("No Custom Quote variant found, looking for highest user count variant as fallback")
+      // If no custom variant found, use the highest user count variant as a fallback
       const sortedVariants = [...product.variants].sort((a, b) => {
         const aCount = extractUserCount(a)
         const bCount = extractUserCount(b)
@@ -294,7 +314,7 @@ export default function SignaturePricingCalculator({
 
       if (sortedVariants.length > 0) {
         console.log(
-          `Using highest user count variant: ${sortedVariants[0].id} (${extractUserCount(sortedVariants[0])} users)`,
+          `Using highest user count variant as fallback: ${sortedVariants[0].id} (${extractUserCount(sortedVariants[0])} users)`,
         )
         return sortedVariants[0]?.id || null
       }
