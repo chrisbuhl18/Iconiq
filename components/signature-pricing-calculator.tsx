@@ -587,14 +587,14 @@ export default function SignaturePricingCalculator({
 
               {/* Total Price Display - Smaller version */}
               <div className="bg-gradient-to-r from-periwinkle to-misty-rose p-6 rounded-xl shadow-md flex flex-col justify-center">
-                <span className="text-lg text-english-violet/80 block mb-2">Your Total</span>
+                <span className="text-4x1 text-english-violet/80 block mb-1">Your Total</span>
                 {!selectedAnimation ? (
                   <h3 className="text-4xl font-bold text-english-violet">Select a Package</h3>
                 ) : isCustomPricing ? (
                   <h3 className="text-4xl font-bold text-english-violet">Custom Quote</h3>
                 ) : (
                   <>
-                    <h3 className="text-4xl font-bold text-english-violet mb-3">${totalPrice}</h3>
+                    <h3 className="text-4xl font-bold text-english-violet mb-3 transform scale-110">${totalPrice}</h3>
                     <div className="inline-block bg-black/10 rounded-full px-6 py-2 mb-3">
                       <span className="font-medium text-english-violet">
                         50% Deposit: ${Math.round(totalPrice / 2)} today
