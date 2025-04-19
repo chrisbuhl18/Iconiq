@@ -3,414 +3,231 @@
 import type React from "react"
 
 import { useState } from "react"
-import Link from "next/link"
-import { ArrowLeft, Download, Trash2, Plus, Search, FileSpreadsheet, Users, RefreshCw, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { toast } from "@/hooks/use-toast"
+import { Upload, Download, Plus, Edit, Trash2 } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 import { movementEmployees } from "@/data/movement-employees"
 
-export default function AdminSignaturesPage() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [csvContent, setCsvContent] = useState("")
-  const [isUploading, setIsUploading] = useState(false)
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [uploadedEmployees, setUploadedEmployees] = useState<any[]>([])
+export default function SignatureAdminPage() {
+  const [employees, setEmployees] = useState(movementEmployees)
+  const [csvFile, setCsvFile] = useState<File | null>(null)
+  const { toast } = useToast()
 
-  // Companies data - in a real app, this would come from a database
-  const companies = [
-    { id: "movement", name: "Movement", employeeCount: 124, signatureCount: 3 },
-    { id: "acme", name: "Acme Inc", employeeCount: 56, signatureCount: 2 },
-    { id: "globex", name: "Globex Corp", employeeCount: 78, signatureCount: 1 },
-  ]
-
-  // Filter employees based on search query
-  const filteredEmployees = movementEmployees.filter(
-    (employee) =>
-      employee.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      employee.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      employee.department.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-
-    setIsUploading(true)
-
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      const content = e.target?.result as string
-      setCsvContent(content)
-
-      // Parse CSV (simplified for demo)
-      const lines = content.split("\n")
-      const headers = lines[0].split(",")
-
-      const parsedEmployees = []
-      for (let i = 1; i < lines.length; i++) {
-        if (!lines[i].trim()) continue
-
-        const values = lines[i].split(",")
-        const employee: Record<string, string> = {}
-
-        headers.forEach((header, index) => {
-          employee[header.trim()] = values[index]?.trim() || ""
-        })
-
-        parsedEmployees.push(employee)
-      }
-
-      setUploadedEmployees(parsedEmployees)
-      setIsUploading(false)
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setCsvFile(e.target.files[0])
     }
-
-    reader.readAsText(file)
   }
 
-  const processUpload = () => {
-    setIsProcessing(true)
-
-    // Simulate processing delay
-    setTimeout(() => {
-      setIsProcessing(false)
+  const handleUpload = () => {
+    if (!csvFile) {
       toast({
-        title: "CSV processed successfully",
-        description: `${uploadedEmployees.length} employees imported`,
+        title: "No file selected",
+        description: "Please select a CSV file to upload.",
+        variant: "destructive",
       })
-      setUploadedEmployees([])
-      setCsvContent("")
-    }, 2000)
+      return
+    }
+
+    // In a real implementation, this would parse the CSV and update the database
+    toast({
+      title: "CSV uploaded successfully",
+      description: `Processed ${csvFile.name} with employee data.`,
+    })
+
+    // Reset the file input
+    setCsvFile(null)
+    const fileInput = document.getElementById("csv-upload") as HTMLInputElement
+    if (fileInput) {
+      fileInput.value = ""
+    }
   }
 
   const downloadTemplate = () => {
-    const template = "name,email,title,department,phone,mobile,location,linkedin,twitter\n"
-    const blob = new Blob([template], { type: "text/csv" })
+    // Create CSV template content
+    const csvContent =
+      "id,name,firstName,lastName,title,email,phone,avatarUrl,useCompanyLogo,scheduleLink\n" +
+      "john-doe,John Doe,JOHN,DOE,Marketing Manager,john@movement.io,(616) 555-1234,/animations/sample-avatar.gif,true,https://calendly.com/movement-io/john\n" +
+      "jane-smith,Jane Smith,JANE,SMITH,Creative Director,jane@movement.io,(616) 555-5678,/animations/sample-email-sig.gif,false,"
+
+    // Create and download the file
+    const blob = new Blob([csvContent], { type: "text/csv" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
-    a.download = "employee-template.csv"
+    a.download = "employee-signature-template.csv"
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
+
+    toast({
+      title: "Template downloaded",
+      description: "CSV template has been downloaded to your device.",
+    })
   }
 
   return (
-    <div className="container max-w-7xl py-10">
-      <div className="mb-8 flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button variant="outline" size="icon" asChild>
-            <Link href="/delivery">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">Signature Management</h1>
-            <p className="text-muted-foreground">Manage email signatures for your companies</p>
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white border-b">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <span className="text-2xl font-bold text-english-violet">Lumio</span>
+              <span className="text-xl">Admin Portal</span>
+            </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      <Tabs defaultValue="companies">
-        <TabsList className="mb-8">
-          <TabsTrigger value="companies">Companies</TabsTrigger>
-          <TabsTrigger value="employees">Employees</TabsTrigger>
-          <TabsTrigger value="import">Import Data</TabsTrigger>
-        </TabsList>
+      <main className="container mx-auto px-4 py-12">
+        <div className="max-w-6xl mx-auto">
+          <h1 className="text-3xl font-bold mb-8 text-english-violet">Email Signature Management</h1>
 
-        <TabsContent value="companies" className="space-y-6">
-          <div className="flex justify-between">
-            <div className="relative w-96">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search companies..." className="pl-8" />
-            </div>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Company
-            </Button>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {companies.map((company) => (
-              <Card key={company.id}>
-                <CardHeader className="pb-2">
-                  <CardTitle>{company.name}</CardTitle>
-                  <CardDescription>
-                    {company.employeeCount} employees • {company.signatureCount} signature templates
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex justify-between text-sm">
-                    <div className="flex items-center">
-                      <Users className="mr-1 h-4 w-4 text-muted-foreground" />
-                      <span>{company.employeeCount} employees</span>
-                    </div>
-                    <Link href={`/delivery/${company.id}`} className="text-blue-600 hover:underline">
-                      View Portal
-                    </Link>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            {/* CSV Upload Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Upload Employee Data</CardTitle>
+                <CardDescription>
+                  Upload a CSV file with employee information to create or update signatures.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid w-full max-w-sm items-center gap-1.5">
+                    <Label htmlFor="csv-upload">CSV File</Label>
+                    <Input id="csv-upload" type="file" accept=".csv" onChange={handleFileChange} />
                   </div>
-                </CardContent>
-                <CardFooter className="flex justify-between">
-                  <Button variant="outline" size="sm">
-                    Edit
-                  </Button>
-                  <Button variant="destructive" size="sm">
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-between">
+                <Button variant="outline" onClick={downloadTemplate}>
+                  <Download className="mr-2 h-4 w-4" />
+                  Template
+                </Button>
+                <Button onClick={handleUpload}>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Upload
+                </Button>
+              </CardFooter>
+            </Card>
 
-        <TabsContent value="employees" className="space-y-6">
-          <div className="flex justify-between">
-            <div className="relative w-96">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search employees..."
-                className="pl-8"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <div className="flex space-x-2">
-              <Button variant="outline">
-                <Download className="mr-2 h-4 w-4" />
-                Export
-              </Button>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Employee
-              </Button>
-            </div>
+            {/* Quick Stats Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Signature Stats</CardTitle>
+                <CardDescription>Overview of your email signature system.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Total Employees:</span>
+                    <span className="text-lg font-bold">{employees.length}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Using Company Logo:</span>
+                    <span className="text-lg font-bold">{employees.filter((emp) => emp.useCompanyLogo).length}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Using Personal Headshot:</span>
+                    <span className="text-lg font-bold">{employees.filter((emp) => !emp.useCompanyLogo).length}</span>
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button variant="outline" className="w-full">
+                  View Detailed Reports
+                </Button>
+              </CardFooter>
+            </Card>
+
+            {/* Quick Actions Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+                <CardDescription>Common administrative tasks.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <Button className="w-full justify-start">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add New Employee
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start">
+                    <Download className="mr-2 h-4 w-4" />
+                    Export All Data
+                  </Button>
+                  <Button variant="secondary" className="w-full justify-start">
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit Company Settings
+                  </Button>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button variant="outline" className="w-full">
+                  View All Actions
+                </Button>
+              </CardFooter>
+            </Card>
           </div>
 
+          {/* Employee Table */}
           <Card>
-            <CardContent className="p-0">
+            <CardHeader>
+              <CardTitle>Employee Signatures</CardTitle>
+              <CardDescription>Manage individual employee signature settings.</CardDescription>
+            </CardHeader>
+            <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Department</TableHead>
                     <TableHead>Title</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Avatar Type</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredEmployees.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="h-24 text-center">
-                        No employees found.
+                  {employees.map((employee) => (
+                    <TableRow key={employee.id}>
+                      <TableCell className="font-medium">{employee.name}</TableCell>
+                      <TableCell>{employee.title.split("//")[0].trim()}</TableCell>
+                      <TableCell>{employee.email}</TableCell>
+                      <TableCell>
+                        {employee.useCompanyLogo ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            Company Logo
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            Personal Headshot
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <Button variant="ghost" size="sm">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
-                  ) : (
-                    filteredEmployees.map((employee) => (
-                      <TableRow key={employee.id}>
-                        <TableCell className="font-medium">{employee.name}</TableCell>
-                        <TableCell>{employee.email}</TableCell>
-                        <TableCell>{employee.department}</TableCell>
-                        <TableCell>{employee.title}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-50">
-                            Active
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end space-x-2">
-                            <Button variant="ghost" size="icon">
-                              <Link href={`/delivery/movement?employee=${employee.id}`}>
-                                <Search className="h-4 w-4" />
-                              </Link>
-                            </Button>
-                            <Button variant="ghost" size="icon">
-                              <Trash2 className="h-4 w-4 text-red-500" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
+                  ))}
                 </TableBody>
               </Table>
             </CardContent>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="import" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Import Employee Data</CardTitle>
-              <CardDescription>Upload a CSV file with employee data to create signatures in bulk</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-medium">CSV Template</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Download our template to ensure your data is formatted correctly
-                  </p>
-                </div>
-                <Button variant="outline" onClick={downloadTemplate}>
-                  <Download className="mr-2 h-4 w-4" />
-                  Download Template
-                </Button>
-              </div>
-
-              <div className="rounded-lg border border-dashed p-10">
-                <div className="flex flex-col items-center justify-center text-center">
-                  <FileSpreadsheet className="h-10 w-10 text-muted-foreground" />
-                  <h3 className="mt-4 text-lg font-semibold">Upload CSV File</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Drag and drop your CSV file here, or click to browse
-                  </p>
-                  <label className="mt-4">
-                    <Input
-                      type="file"
-                      accept=".csv"
-                      className="hidden"
-                      onChange={handleFileUpload}
-                      disabled={isUploading}
-                    />
-                    <div className="cursor-pointer rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
-                      {isUploading ? "Uploading..." : "Select CSV File"}
-                    </div>
-                  </label>
-                </div>
-              </div>
-
-              {uploadedEmployees.length > 0 && (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Preview ({uploadedEmployees.length} employees)</h3>
-                  <div className="max-h-60 overflow-auto rounded-md border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Name</TableHead>
-                          <TableHead>Email</TableHead>
-                          <TableHead>Title</TableHead>
-                          <TableHead>Department</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {uploadedEmployees.map((employee, index) => (
-                          <TableRow key={index}>
-                            <TableCell>{employee.name}</TableCell>
-                            <TableCell>{employee.email}</TableCell>
-                            <TableCell>{employee.title}</TableCell>
-                            <TableCell>{employee.department}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-
-                  <div className="flex justify-end space-x-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setUploadedEmployees([])
-                        setCsvContent("")
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                    <Button onClick={processUpload} disabled={isProcessing}>
-                      {isProcessing ? (
-                        <>
-                          <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        <>
-                          <Check className="mr-2 h-4 w-4" />
-                          Process CSV
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Bulk Actions</CardTitle>
-              <CardDescription>Perform actions on multiple signatures at once</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <Label htmlFor="company">Select Company</Label>
-                  <select
-                    id="company"
-                    className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
-                  >
-                    <option value="">Select a company</option>
-                    {companies.map((company) => (
-                      <option key={company.id} value={company.id}>
-                        {company.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <Label htmlFor="action">Select Action</Label>
-                  <select
-                    id="action"
-                    className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
-                  >
-                    <option value="">Select an action</option>
-                    <option value="regenerate">Regenerate All Signatures</option>
-                    <option value="export">Export All Signatures</option>
-                    <option value="delete">Delete All Signatures</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex justify-end">
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button>Execute Action</Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Confirm Action</DialogTitle>
-                      <DialogDescription>
-                        Are you sure you want to perform this action? This cannot be undone.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                      <Button variant="outline">Cancel</Button>
-                      <Button>Confirm</Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+        </div>
+      </main>
     </div>
   )
 }
