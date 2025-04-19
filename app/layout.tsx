@@ -2,6 +2,21 @@ import type React from "react"
 import type { Metadata } from "next"
 import "./globals.css"
 import Script from "next/script"
+import { Inter, Playfair_Display } from "next/font/google"
+
+// Define the Inter font (sans-serif)
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+})
+
+// Define the Playfair Display font (serif/heading)
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-playfair",
+})
 
 export const metadata: Metadata = {
   title: "v0 App",
@@ -15,7 +30,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <head>
         {/* Google Analytics */}
         <Script strategy="afterInteractive" src={`https://www.googletagmanager.com/gtag/js?id=G-SF5P78WTLT`} />
