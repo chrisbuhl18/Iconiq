@@ -1,441 +1,338 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useEffect } from "react"
-import type { Employee } from "@/data/movement-employees"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { ArrowLeft, Copy, Download, Eye, EyeOff, User, Info } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Check, Copy, Download, Save } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
-import EmailSignature from "@/components/email-signature"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { EmailSignature } from "@/components/email-signature"
+import { toast } from "@/hooks/use-toast"
 
-interface SignatureDeliveryPageProps {
-  companyName: string
-  companyLogo: string
-  companyColor: string
-  companyBrandedGif: string
-  employees: Employee[]
-  isAdmin?: boolean
+export type Employee = {
+  id: string
+  name: string
+  email: string
+  title: string
+  department: string
+  phone?: string
+  mobile?: string
+  avatar?: string
+  location?: string
+  linkedin?: string
+  twitter?: string
 }
 
-export default function SignatureDeliveryPage({
-  companyName,
-  companyLogo,
-  companyColor,
-  companyBrandedGif,
-  employees,
-  isAdmin = false,
-}: SignatureDeliveryPageProps) {
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>(employees[0]?.id || "")
-  const [copied, setCopied] = useState(false)
-  const { toast } = useToast()
+export type CompanyInfo = {
+  name: string
+  logo: string
+  primaryColor: string
+  secondaryColor: string
+  signatureTemplates: {
+    id: string
+    name: string
+    description: string
+  }[]
+}
 
-  const selectedEmployee = employees.find((emp) => emp.id === selectedEmployeeId) || employees[0]
+interface SignatureDeliveryPageProps {
+  companyInfo: CompanyInfo
+  employees: Employee[]
+}
 
-  // Form state for editable fields
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    title: "",
-    phone: "",
-    scheduleLink: "",
-    useCompanyLogo: false,
+export function SignatureDeliveryPage({ companyInfo, employees }: SignatureDeliveryPageProps) {
+  const router = useRouter()
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
+  const [selectedTemplate, setSelectedTemplate] = useState(companyInfo.signatureTemplates[0].id)
+  const [showPreview, setShowPreview] = useState(true)
+  const [customizations, setCustomizations] = useState({
+    showAvatar: true,
+    showSocialIcons: true,
+    showCompanyLogo: true,
+    showMobile: true,
+    showLocation: true,
+    customTagline: "",
   })
 
-  // Create a modified employee object with the current form data
-  const [modifiedEmployee, setModifiedEmployee] = useState<Employee | null>(null)
-
-  // Initialize form data when selected employee changes
-  useEffect(() => {
-    if (selectedEmployee) {
-      setFormData({
-        firstName: selectedEmployee.firstName,
-        lastName: selectedEmployee.lastName,
-        title: selectedEmployee.title,
-        phone: selectedEmployee.phone,
-        scheduleLink: selectedEmployee.scheduleLink || "",
-        useCompanyLogo: selectedEmployee.useCompanyLogo || false,
-      })
-    }
-  }, [selectedEmployee])
-
-  // Update modified employee when form data changes
-  useEffect(() => {
-    if (selectedEmployee) {
-      setModifiedEmployee({
-        ...selectedEmployee,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        title: formData.title,
-        phone: formData.phone,
-        scheduleLink: formData.scheduleLink,
-        useCompanyLogo: formData.useCompanyLogo,
-        avatarUrl: formData.useCompanyLogo ? companyBrandedGif : selectedEmployee.avatarUrl,
-      })
-    }
-  }, [formData, selectedEmployee, companyBrandedGif])
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
+  const handleEmployeeSelect = (employeeId: string) => {
+    const employee = employees.find((emp) => emp.id === employeeId) || null
+    setSelectedEmployee(employee)
   }
 
-  const handleSwitchChange = (checked: boolean) => {
-    setFormData((prev) => ({
-      ...prev,
-      useCompanyLogo: checked,
-    }))
-  }
-
-  const copySignatureToClipboard = async () => {
-    const signatureElement = document.getElementById("signature-preview")
-    if (signatureElement) {
-      try {
-        const signatureHtml = signatureElement.innerHTML
-        await navigator.clipboard.writeText(signatureHtml)
-        setCopied(true)
-        toast({
-          title: "Signature copied!",
-          description: "The HTML signature has been copied to your clipboard.",
-        })
-        setTimeout(() => setCopied(false), 2000)
-      } catch (err) {
-        toast({
-          title: "Copy failed",
-          description: "Please try again or use the HTML code directly.",
-          variant: "destructive",
-        })
-      }
-    }
-  }
-
-  const downloadSignatureAsHtml = () => {
-    const signatureElement = document.getElementById("signature-preview")
-    if (signatureElement) {
-      const signatureHtml = signatureElement.innerHTML
-      const blob = new Blob([signatureHtml], { type: "text/html" })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = `${selectedEmployee.name.replace(" ", "-")}-signature.html`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-
-      toast({
-        title: "Signature downloaded!",
-        description: "The HTML signature has been downloaded as a file.",
-      })
-    }
-  }
-
-  // Function to save employee preferences (in a real app, this would connect to a backend)
-  const savePreferences = () => {
-    // In a real implementation, this would update the database
+  const handleCopyHTML = () => {
+    // In a real implementation, this would get the HTML from the EmailSignature component
+    const signatureHTML = document.getElementById("signature-preview")?.innerHTML || ""
+    navigator.clipboard.writeText(signatureHTML)
     toast({
-      title: "Preferences saved!",
-      description: "Your signature information has been updated.",
+      title: "HTML copied to clipboard",
+      description: "You can now paste your signature into your email client",
+    })
+  }
+
+  const handleDownloadHTML = () => {
+    // In a real implementation, this would get the HTML from the EmailSignature component
+    const signatureHTML = document.getElementById("signature-preview")?.innerHTML || ""
+    const blob = new Blob([signatureHTML], { type: "text/html" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `${selectedEmployee?.name.replace(/\s+/g, "-").toLowerCase()}-signature.html`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    toast({
+      title: "Signature downloaded",
+      description: "Your HTML signature file has been downloaded",
     })
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <img src={companyLogo || "/placeholder.svg"} alt={companyName} className="h-10" />
-              <div className="text-2xl font-bold" style={{ color: companyColor }}>
-                Email Signature Portal
-              </div>
-            </div>
-            <div className="text-sm text-gray-500">Powered by Lumio</div>
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <Button variant="outline" size="icon" onClick={() => router.push("/delivery")}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold">{companyInfo.name} Email Signatures</h1>
+            <p className="text-muted-foreground">Customize and download your email signature</p>
           </div>
         </div>
-      </header>
+        <div
+          className="h-12 w-auto"
+          style={{
+            backgroundImage: `url(${companyInfo.logo})`,
+            backgroundSize: "contain",
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "center",
+            minWidth: "120px",
+          }}
+        />
+      </div>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-12">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow-md p-8 mb-8">
-            <h1 className="text-3xl font-bold mb-6" style={{ color: companyColor }}>
-              Get Your Email Signature
-            </h1>
-            <p className="text-gray-600 mb-8">
-              Select your name from the dropdown below to generate your personalized email signature.
-            </p>
-
-            {/* Employee Selector */}
-            <div className="mb-8">
-              <label htmlFor="employee-select" className="block text-sm font-medium text-gray-700 mb-2">
-                Select Your Name
-              </label>
-              <Select value={selectedEmployeeId} onValueChange={setSelectedEmployeeId}>
-                <SelectTrigger className="w-full md:w-80">
-                  <SelectValue placeholder="Select an employee" />
+      <div className="grid gap-8 lg:grid-cols-5">
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Signature Settings</CardTitle>
+            <CardDescription>Customize your email signature</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="employee">Select Your Name</Label>
+              <Select onValueChange={handleEmployeeSelect}>
+                <SelectTrigger id="employee">
+                  <SelectValue placeholder="Select your name" />
                 </SelectTrigger>
                 <SelectContent>
                   {employees.map((employee) => (
                     <SelectItem key={employee.id} value={employee.id}>
-                      {employee.name} - {employee.title.split("//")[0].trim()}
+                      {employee.name} - {employee.title}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Self-Service Form */}
-            {selectedEmployee && (
-              <div className="mb-8 p-6 bg-gray-50 rounded-lg">
-                <h3 className="text-lg font-medium mb-4" style={{ color: companyColor }}>
-                  Customize Your Signature
-                </h3>
-                <p className="text-sm text-gray-500 mb-6">
-                  You can update your personal information below. Company branding and formatting will remain
-                  consistent.
-                </p>
+            <div className="space-y-2">
+              <Label htmlFor="template">Signature Template</Label>
+              <Select defaultValue={selectedTemplate} onValueChange={setSelectedTemplate}>
+                <SelectTrigger id="template">
+                  <SelectValue placeholder="Select template" />
+                </SelectTrigger>
+                <SelectContent>
+                  {companyInfo.signatureTemplates.map((template) => (
+                    <SelectItem key={template.id} value={template.id}>
+                      {template.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="firstName" className="text-sm font-medium">
-                        First Name
-                      </Label>
-                      <Input
-                        id="firstName"
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleInputChange}
-                        className="mt-1"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="lastName" className="text-sm font-medium">
-                        Last Name
-                      </Label>
-                      <Input
-                        id="lastName"
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleInputChange}
-                        className="mt-1"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="title" className="text-sm font-medium">
-                        Job Title
-                      </Label>
-                      <Input
-                        id="title"
-                        name="title"
-                        value={formData.title}
-                        onChange={handleInputChange}
-                        className="mt-1"
-                      />
-                    </div>
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="customizations">
+                <AccordionTrigger>Advanced Customizations</AccordionTrigger>
+                <AccordionContent className="space-y-4 pt-4">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="show-avatar" className="cursor-pointer">
+                      Show Avatar
+                    </Label>
+                    <Switch
+                      id="show-avatar"
+                      checked={customizations.showAvatar}
+                      onCheckedChange={(checked) => setCustomizations({ ...customizations, showAvatar: checked })}
+                    />
                   </div>
 
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="phone" className="text-sm font-medium">
-                        Phone Number
-                      </Label>
-                      <Input
-                        id="phone"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                        className="mt-1"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="scheduleLink" className="text-sm font-medium">
-                        Scheduling Link (Optional)
-                      </Label>
-                      <Input
-                        id="scheduleLink"
-                        name="scheduleLink"
-                        value={formData.scheduleLink}
-                        onChange={handleInputChange}
-                        placeholder="https://calendly.com/your-link"
-                        className="mt-1"
-                      />
-                    </div>
-
-                    <div className="pt-2">
-                      <div className="flex items-center space-x-2">
-                        <Switch
-                          id="avatar-type"
-                          checked={formData.useCompanyLogo}
-                          onCheckedChange={handleSwitchChange}
-                        />
-                        <Label htmlFor="avatar-type">Use company logo instead of personal headshot</Label>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1 ml-7">
-                        {formData.useCompanyLogo
-                          ? "Using company branded logo"
-                          : "Using personal headshot with company branding"}
-                      </p>
-                    </div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="show-social" className="cursor-pointer">
+                      Show Social Icons
+                    </Label>
+                    <Switch
+                      id="show-social"
+                      checked={customizations.showSocialIcons}
+                      onCheckedChange={(checked) => setCustomizations({ ...customizations, showSocialIcons: checked })}
+                    />
                   </div>
+
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="show-logo" className="cursor-pointer">
+                      Show Company Logo
+                    </Label>
+                    <Switch
+                      id="show-logo"
+                      checked={customizations.showCompanyLogo}
+                      onCheckedChange={(checked) => setCustomizations({ ...customizations, showCompanyLogo: checked })}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="show-mobile" className="cursor-pointer">
+                      Show Mobile Number
+                    </Label>
+                    <Switch
+                      id="show-mobile"
+                      checked={customizations.showMobile}
+                      onCheckedChange={(checked) => setCustomizations({ ...customizations, showMobile: checked })}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="show-location" className="cursor-pointer">
+                      Show Location
+                    </Label>
+                    <Switch
+                      id="show-location"
+                      checked={customizations.showLocation}
+                      onCheckedChange={(checked) => setCustomizations({ ...customizations, showLocation: checked })}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="custom-tagline">Custom Tagline</Label>
+                    <Input
+                      id="custom-tagline"
+                      placeholder="Add a custom tagline (optional)"
+                      value={customizations.customTagline}
+                      onChange={(e) => setCustomizations({ ...customizations, customTagline: e.target.value })}
+                    />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </CardContent>
+          <CardFooter className="flex-col space-y-4">
+            <Button className="w-full" disabled={!selectedEmployee} onClick={handleCopyHTML}>
+              <Copy className="mr-2 h-4 w-4" />
+              Copy HTML
+            </Button>
+            <Button variant="outline" className="w-full" disabled={!selectedEmployee} onClick={handleDownloadHTML}>
+              <Download className="mr-2 h-4 w-4" />
+              Download HTML File
+            </Button>
+          </CardFooter>
+        </Card>
+
+        <Card className="lg:col-span-3">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Signature Preview</CardTitle>
+              <CardDescription>See how your signature will appear in emails</CardDescription>
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => setShowPreview(!showPreview)}>
+              {showPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {!selectedEmployee ? (
+              <div className="flex h-64 items-center justify-center rounded-md border border-dashed p-8 text-center">
+                <div className="space-y-2">
+                  <User className="mx-auto h-8 w-8 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold">No Employee Selected</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Select your name from the dropdown to preview your signature
+                  </p>
                 </div>
-
-                <div className="mt-6 flex justify-end">
-                  <Button
-                    onClick={savePreferences}
-                    className="flex items-center gap-2"
-                    style={{ backgroundColor: companyColor }}
-                  >
-                    <Save className="h-4 w-4" />
-                    Save Changes
-                  </Button>
+              </div>
+            ) : showPreview ? (
+              <div id="signature-preview" className="rounded-md border p-6" style={{ backgroundColor: "#ffffff" }}>
+                <EmailSignature
+                  employee={selectedEmployee}
+                  company={companyInfo}
+                  template={selectedTemplate}
+                  customizations={customizations}
+                />
+              </div>
+            ) : (
+              <div className="flex h-64 items-center justify-center rounded-md border border-dashed p-8 text-center">
+                <div className="space-y-2">
+                  <EyeOff className="mx-auto h-8 w-8 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold">Preview Hidden</h3>
+                  <p className="text-sm text-muted-foreground">Click the eye icon to show the preview</p>
                 </div>
               </div>
             )}
-
-            {/* Signature Preview and Code */}
-            {modifiedEmployee && (
-              <Tabs defaultValue="preview" className="w-full">
-                <TabsList className="mb-6">
-                  <TabsTrigger value="preview">Preview</TabsTrigger>
-                  <TabsTrigger value="html">HTML Code</TabsTrigger>
-                  <TabsTrigger value="instructions">Installation Instructions</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="preview">
-                  <Card>
-                    <CardContent className="p-6">
-                      <h2 className="text-xl font-semibold mb-4" style={{ color: companyColor }}>
-                        Your Email Signature
-                      </h2>
-                      <div className="border p-6 bg-white rounded-md mb-6">
-                        <div id="signature-preview">
-                          <EmailSignature employee={modifiedEmployee} companyColor={companyColor} />
-                        </div>
-                      </div>
-                      <div className="flex flex-col sm:flex-row gap-4">
-                        <Button
-                          onClick={copySignatureToClipboard}
-                          className="flex items-center gap-2"
-                          style={{ backgroundColor: companyColor }}
-                        >
-                          {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                          {copied ? "Copied!" : "Copy Signature"}
-                        </Button>
-                        <Button onClick={downloadSignatureAsHtml} variant="outline" className="flex items-center gap-2">
-                          <Download className="h-4 w-4" />
-                          Download as HTML
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                <TabsContent value="html">
-                  <Card>
-                    <CardContent className="p-6">
-                      <h2 className="text-xl font-semibold mb-4" style={{ color: companyColor }}>
-                        HTML Code
-                      </h2>
-                      <p className="text-gray-600 mb-4">
-                        If you need to manually add your signature, copy the HTML code below:
-                      </p>
-                      <div className="bg-gray-100 p-4 rounded-md overflow-auto max-h-96 mb-4">
-                        <pre className="text-xs text-gray-800 whitespace-pre-wrap">
-                          {`<div id="signature-preview">
-  <EmailSignature employee={modifiedEmployee} companyColor={companyColor} />
-</div>`}
-                        </pre>
-                      </div>
-                      <Button
-                        onClick={copySignatureToClipboard}
-                        className="flex items-center gap-2"
-                        style={{ backgroundColor: companyColor }}
-                      >
-                        {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                        {copied ? "Copied!" : "Copy HTML"}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                <TabsContent value="instructions">
-                  <Card>
-                    <CardContent className="p-6">
-                      <h2 className="text-xl font-semibold mb-4" style={{ color: companyColor }}>
-                        Installation Instructions
-                      </h2>
-                      <div className="space-y-6">
-                        <div>
-                          <h3 className="font-medium text-lg mb-2">Gmail</h3>
-                          <ol className="list-decimal pl-5 space-y-2 text-gray-700">
-                            <li>Click the "Copy Signature" button above</li>
-                            <li>Open Gmail and go to Settings (gear icon) &gt; See all settings</li>
-                            <li>In the "General" tab, scroll down to the "Signature" section</li>
-                            <li>Create a new signature or edit an existing one</li>
-                            <li>Paste your copied signature into the editor</li>
-                            <li>Scroll down and click "Save Changes"</li>
-                          </ol>
-                        </div>
-
-                        <div>
-                          <h3 className="font-medium text-lg mb-2">Outlook</h3>
-                          <ol className="list-decimal pl-5 space-y-2 text-gray-700">
-                            <li>Click the "Copy Signature" button above</li>
-                            <li>Open Outlook and go to File &gt; Options &gt; Mail &gt; Signatures</li>
-                            <li>Create a new signature or select an existing one to edit</li>
-                            <li>Paste your copied signature into the editor</li>
-                            <li>Click "Save" and then "OK"</li>
-                          </ol>
-                        </div>
-
-                        <div>
-                          <h3 className="font-medium text-lg mb-2">Apple Mail</h3>
-                          <ol className="list-decimal pl-5 space-y-2 text-gray-700">
-                            <li>Click the "Copy Signature" button above</li>
-                            <li>Open Mail and go to Mail &gt; Preferences &gt; Signatures</li>
-                            <li>Select your email account and click the "+" button to add a new signature</li>
-                            <li>Name your signature and paste the copied signature</li>
-                            <li>Close the preferences window to save</li>
-                          </ol>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-              </Tabs>
-            )}
-          </div>
-
-          <div className="text-center text-gray-500 text-sm">
-            <p>
-              Having trouble? Contact{" "}
-              <a
-                href="mailto:support@lumio.com"
-                className="text-blue-600 hover:underline"
-                style={{ color: companyColor }}
-              >
-                support@lumio.com
-              </a>{" "}
-              for assistance.
-            </p>
-          </div>
-        </div>
-      </main>
+          </CardContent>
+          <CardFooter>
+            <Tabs defaultValue="outlook" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="outlook">Outlook</TabsTrigger>
+                <TabsTrigger value="gmail">Gmail</TabsTrigger>
+                <TabsTrigger value="apple-mail">Apple Mail</TabsTrigger>
+              </TabsList>
+              <TabsContent value="outlook" className="space-y-4 pt-4">
+                <Alert>
+                  <Info className="h-4 w-4" />
+                  <AlertDescription>
+                    <ol className="ml-4 list-decimal space-y-2 text-sm">
+                      <li>Copy your signature HTML using the "Copy HTML" button</li>
+                      <li>In Outlook, go to File &gt; Options &gt; Mail &gt; Signatures</li>
+                      <li>Click "New" to create a new signature</li>
+                      <li>Give your signature a name and paste the HTML</li>
+                      <li>Click "OK" to save your new signature</li>
+                    </ol>
+                  </AlertDescription>
+                </Alert>
+              </TabsContent>
+              <TabsContent value="gmail" className="space-y-4 pt-4">
+                <Alert>
+                  <Info className="h-4 w-4" />
+                  <AlertDescription>
+                    <ol className="ml-4 list-decimal space-y-2 text-sm">
+                      <li>Copy your signature HTML using the "Copy HTML" button</li>
+                      <li>In Gmail, click the gear icon and select "See all settings"</li>
+                      <li>In the "General" tab, scroll down to the "Signature" section</li>
+                      <li>Create a new signature or edit an existing one</li>
+                      <li>Paste your signature HTML and click "Save Changes"</li>
+                    </ol>
+                  </AlertDescription>
+                </Alert>
+              </TabsContent>
+              <TabsContent value="apple-mail" className="space-y-4 pt-4">
+                <Alert>
+                  <Info className="h-4 w-4" />
+                  <AlertDescription>
+                    <ol className="ml-4 list-decimal space-y-2 text-sm">
+                      <li>Copy your signature HTML using the "Copy HTML" button</li>
+                      <li>In Apple Mail, go to Mail &gt; Preferences &gt; Signatures</li>
+                      <li>Select your email account and click the "+" button</li>
+                      <li>Name your signature and paste the HTML</li>
+                      <li>Close the preferences window to save</li>
+                    </ol>
+                  </AlertDescription>
+                </Alert>
+              </TabsContent>
+            </Tabs>
+          </CardFooter>
+        </Card>
+      </div>
     </div>
   )
 }
