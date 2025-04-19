@@ -8,7 +8,7 @@ export default function GmailOnlyBadge({ className }: GmailOnlyBadgeProps) {
   return (
     <div
       className={cn(
-        "block w-fit mx-auto md:inline-flex items-center px-2 py-1 rounded-full bg-red-100 text-red-700 text-xs font-medium",
+        "block w-fit mx-auto md:mx-0 md:inline-flex items-center px-2 py-1 rounded-full bg-red-100 text-red-700 text-xs font-medium",
         className,
       )}
     >
