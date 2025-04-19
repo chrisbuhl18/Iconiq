@@ -1,79 +1,63 @@
-export interface Employee {
-  id: string
-  name: string
-  firstName: string
-  lastName: string
-  title: string
-  email: string
-  phone: string
-  avatarUrl: string
-  useCompanyLogo?: boolean // Flag to indicate if using company logo instead of personal headshot
-  scheduleLink?: string
-}
-
-export const movementEmployees: Employee[] = [
+export const movementEmployees = [
   {
-    id: "chris-buhl",
-    name: "Chris Buhl",
-    firstName: "CHRIS",
-    lastName: "BUHL",
-    title: "Head of Production // Co-Owner",
-    email: "chris@movement.io",
-    phone: "(616) 610-4464",
-    avatarUrl: "/animations/sample-avatar.gif",
-    useCompanyLogo: true, // Chris uses the company logo GIF
-    scheduleLink: "https://calendly.com/movement-io/meeting",
-  },
-  {
-    id: "sarah-johnson",
+    id: "1",
     name: "Sarah Johnson",
-    firstName: "SARAH",
-    lastName: "JOHNSON",
-    title: "Marketing Director // Co-Owner",
-    email: "sarah@movement.io",
-    phone: "(616) 555-1234",
-    avatarUrl: "/animations/sample-email-sig.gif",
-    useCompanyLogo: false, // Sarah uses her personal headshot GIF
-    scheduleLink: "https://calendly.com/movement-io/sarah",
+    email: "sarah.johnson@movement.com",
+    title: "Marketing Director",
+    department: "Marketing",
+    phone: "+1 (555) 123-4567",
+    mobile: "+1 (555) 987-6543",
+    avatar: "/confident-professional.png",
+    location: "New York, NY",
+    linkedin: "https://linkedin.com/in/sarahjohnson",
+    twitter: "https://twitter.com/sarahjohnson",
   },
   {
-    id: "alex-rodriguez",
-    name: "Alex Rodriguez",
-    firstName: "ALEX",
-    lastName: "RODRIGUEZ",
-    title: "Creative Director",
-    email: "alex@movement.io",
-    phone: "(616) 555-5678",
-    avatarUrl: "/animations/sample-avatar.gif",
-    useCompanyLogo: true,
-  },
-  {
-    id: "taylor-smith",
-    name: "Taylor Smith",
-    firstName: "TAYLOR",
-    lastName: "SMITH",
+    id: "2",
+    name: "Michael Chen",
+    email: "michael.chen@movement.com",
     title: "Senior Developer",
-    email: "taylor@movement.io",
-    phone: "(616) 555-9012",
-    avatarUrl: "/animations/sample-email-sig.gif",
-    useCompanyLogo: false,
+    department: "Engineering",
+    phone: "+1 (555) 234-5678",
+    mobile: "+1 (555) 876-5432",
+    avatar: "/thoughtful-student.png",
+    location: "San Francisco, CA",
+    linkedin: "https://linkedin.com/in/michaelchen",
   },
   {
-    id: "jordan-patel",
-    name: "Jordan Patel",
-    firstName: "JORDAN",
-    lastName: "PATEL",
-    title: "UX Designer",
-    email: "jordan@movement.io",
-    phone: "(616) 555-3456",
-    avatarUrl: "/animations/sample-avatar.gif",
-    useCompanyLogo: true,
+    id: "3",
+    name: "Jessica Williams",
+    email: "jessica.williams@movement.com",
+    title: "Customer Success Manager",
+    department: "Customer Support",
+    phone: "+1 (555) 345-6789",
+    avatar: "/confident-professional.png",
+    location: "Chicago, IL",
+    linkedin: "https://linkedin.com/in/jessicawilliams",
+    twitter: "https://twitter.com/jessicaw",
+  },
+  {
+    id: "4",
+    name: "David Rodriguez",
+    email: "david.rodriguez@movement.com",
+    title: "Sales Director",
+    department: "Sales",
+    phone: "+1 (555) 456-7890",
+    mobile: "+1 (555) 765-4321",
+    avatar: "/confident-latino-businessman.png",
+    location: "Miami, FL",
+    linkedin: "https://linkedin.com/in/davidrodriguez",
+  },
+  {
+    id: "5",
+    name: "Emily Taylor",
+    email: "emily.taylor@movement.com",
+    title: "Product Manager",
+    department: "Product",
+    phone: "+1 (555) 567-8901",
+    avatar: "/placeholder.svg?height=200&width=200&query=woman%20with%20blonde%20hair%20smiling",
+    location: "Austin, TX",
+    linkedin: "https://linkedin.com/in/emilytaylor",
+    twitter: "https://twitter.com/emilytaylor",
   },
 ]
-
-// Company default assets
-export const companyAssets = {
-  logo: "/placeholder.svg?height=60&width=200&text=Movement.io",
-  brandColor: "#29505F",
-  brandedGif: "/animations/sample-avatar.gif", // Company branded GIF without headshot
-}

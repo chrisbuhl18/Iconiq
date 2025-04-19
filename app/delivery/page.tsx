@@ -1,61 +1,87 @@
+import type { Metadata } from "next"
 import Link from "next/link"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { ArrowRight, Mail, Users, Settings, Palette } from "lucide-react"
+
+export const metadata: Metadata = {
+  title: "Lumio | Email Signature Delivery Portal",
+  description: "Access your animated email signatures and avatars",
+}
 
 export default function DeliveryPortalPage() {
+  // In a real app, this would come from a database or API
   const companies = [
-    {
-      id: "movement",
-      name: "Movement.io",
-      description: "Digital marketing and media production",
-      logo: "/placeholder.svg?height=60&width=200&text=Movement.io",
-      color: "#29505F",
-    },
-    // Add more companies as needed
+    { id: "movement", name: "Movement", employeeCount: 124, signatureCount: 3 },
+    { id: "acme", name: "Acme Inc", employeeCount: 56, signatureCount: 2 },
+    { id: "globex", name: "Globex Corp", employeeCount: 78, signatureCount: 1 },
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <span className="text-2xl font-bold text-english-violet">Iconiq</span>
-              <span className="text-xl">Email Signature Portal</span>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div className="container max-w-6xl py-10">
+      <div className="mb-8 space-y-4">
+        <h1 className="text-4xl font-bold tracking-tight">Email Signature Delivery Portal</h1>
+        <p className="text-muted-foreground text-lg">
+          Access and customize your company's animated email signatures and avatars
+        </p>
+      </div>
 
-      <main className="container mx-auto px-4 py-12">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8 text-english-violet">Company Signature Portals</h1>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {companies.map((company) => (
+          <Card key={company.id} className="overflow-hidden transition-all hover:shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+              <CardTitle className="text-xl">{company.name}</CardTitle>
+              <CardDescription className="text-blue-100">
+                {company.employeeCount} employees • {company.signatureCount} signature templates
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-4 text-sm">
+                <div className="flex items-center">
+                  <Users className="mr-1 h-4 w-4 text-muted-foreground" />
+                  <span>{company.employeeCount} employees</span>
+                </div>
+                <div className="flex items-center">
+                  <Mail className="mr-1 h-4 w-4 text-muted-foreground" />
+                  <span>{company.signatureCount} signatures</span>
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="bg-muted/50 px-6 py-4">
+              <Link href={`/delivery/${company.id}`} className="w-full">
+                <Button className="w-full">
+                  Access Signatures
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {companies.map((company) => (
-              <Card key={company.id}>
-                <CardHeader>
-                  <div className="flex items-center gap-4">
-                    <img src={company.logo || "/placeholder.svg"} alt={company.name} className="h-10" />
-                    <CardTitle style={{ color: company.color }}>{company.name}</CardTitle>
-                  </div>
-                  <CardDescription>{company.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-gray-600">
-                    Access the email signature portal for {company.name} employees.
-                  </p>
-                </CardContent>
-                <CardFooter>
-                  <Link href={`/delivery/${company.id}`}>
-                    <Button style={{ backgroundColor: company.color }}>Access Portal</Button>
-                  </Link>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
+      <div className="mt-12">
+        <h2 className="text-2xl font-bold mb-4">Admin Actions</h2>
+        <div className="grid gap-4 md:grid-cols-3">
+          <Link href="/admin/signatures">
+            <Button variant="outline" className="w-full justify-start">
+              <Settings className="mr-2 h-4 w-4" />
+              Signature Management
+            </Button>
+          </Link>
+          <Link href="/admin/users">
+            <Button variant="outline" className="w-full justify-start">
+              <Users className="mr-2 h-4 w-4" />
+              User Management
+            </Button>
+          </Link>
+          <Link href="/signature-templates">
+            <Button variant="outline" className="w-full justify-start">
+              <Palette className="mr-2 h-4 w-4" />
+              Signature Templates
+            </Button>
+          </Link>
         </div>
-      </main>
+      </div>
     </div>
   )
 }
