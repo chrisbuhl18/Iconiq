@@ -53,7 +53,7 @@ export default function SignaturesPage() {
     },
     {
       question: "Can I add new employees later?",
-      answer: "Yes! We offer a special onboarding price of $250 for one-off additions to your existing package.",
+      answer: "Yes! Your customized portal lets you add employees as needed, all using your branded logo animation. If you’d like us to integrate each new employee’s headshot into the animation, there’s a one‑time $50 fee per user.",
     },
   ]
 

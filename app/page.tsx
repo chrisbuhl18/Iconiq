@@ -68,7 +68,7 @@ export default function Home() {
           <div className="max-w-4xl mx-auto text-center mb-16">
             <h1 className="heading-xl text-english-violet mb-6">Make your emails memorable.</h1>
             <p className="text-xl md:text-2xl mb-10 text-english-violet/80 max-w-2xl mx-auto">
-              Capture attention, boost your brand, and stand out with animated email elements.
+              Capture attention, boost your open rate, and stand out with animated email elements.
             </p>
           </div>
 
@@ -309,7 +309,7 @@ export default function Home() {
               Make your emails memorable.
             </h1>
             <p className="text-lg mb-6 text-english-violet/80 max-w-2xl mx-auto">
-              Capture attention, boost your brand, and stand out with animated email elements.
+              Capture attention, boost your open rate, and stand out with animated email elements.
             </p>
           </div>
 

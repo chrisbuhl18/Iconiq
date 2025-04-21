@@ -19,9 +19,44 @@ const playfair = Playfair_Display({
 })
 
 export const metadata: Metadata = {
-  title: "v0 App",
-  description: "Created with v0",
-  generator: "v0.dev",
+  title: "Lumio - Animated Email Elements",
+  description: "Make your emails memorable with animated avatars and signatures.",
+  generator: "Next.js",
+  icons: {
+    icon: [
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    apple: { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    other: [
+      { url: "/android-chrome-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/android-chrome-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+  },
+  manifest: "/site.webmanifest",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://lumio.vercel.app",
+    title: "Lumio - Animated Email Elements",
+    description: "Make your emails memorable with animated avatars and signatures.",
+    siteName: "Lumio",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Lumio - Make your emails memorable",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Lumio - Animated Email Elements",
+    description: "Make your emails memorable with animated avatars and signatures.",
+    images: ["/og-image.png"],
+  },
 }
 
 export default function RootLayout({
