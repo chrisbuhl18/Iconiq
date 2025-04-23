@@ -579,7 +579,7 @@ export default function SignaturePricingCalculator({
                         <p className="text-sm text-gray-600 mt-1">Contact us for a custom quote for your team</p>
                       </div>
                     ) : (
-                      <p className="mt-4 font-medium text-english-violet/70">Subtotal: ${USER_PRICE * userCount}</p>
+                      <p className="mt-4 font-large text-english-violet/70">Subtotal: ${USER_PRICE * userCount}</p>
                     )}
                   </div>
                 </div>
@@ -594,7 +594,9 @@ export default function SignaturePricingCalculator({
                   <h3 className="text-4xl font-bold text-english-violet">Custom Quote</h3>
                 ) : (
                   <>
-                    <h3 className="text-4xl font-bold text-english-violet mb-3 transform scale-110">${totalPrice}</h3>
+                    <h3 className="text-4xl font-bold text-english-violet mb-3 transform scale-110 p-4">
+                      ${totalPrice}
+                    </h3>
                     <div className="inline-block bg-black/10 rounded-full px-6 py-2 mb-3">
                       <span className="font-medium text-english-violet">
                         50% Deposit: ${Math.round(totalPrice / 2)} today
