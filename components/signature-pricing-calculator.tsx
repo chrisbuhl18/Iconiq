@@ -448,16 +448,23 @@ export default function SignaturePricingCalculator({
         <div className="max-w-full sm:max-w-2xl md:max-w-4xl mx-auto">
           {/* Pricing Options */}
           <div className="grid grid-cols-1 gap-8">
-            {/* Animation Package */}
+            {/* Animation Package - Business model updated to show only Starter and Premium packages */}
             <div className="bg-seasalt p-8 rounded-xl">
-              <h3 className="text-2xl font-bold text-english-violet mb-6 text-center">Select Animation Package</h3>
+              <h3 className="text-2xl font-bold text-english-violet mb-6 text-center">
+                Step #1: Select Animation Package
+              </h3>
               <RadioGroup value={selectedAnimation} onValueChange={setSelectedAnimation} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
                   {/* Sort and map the packages to ensure Starter, Essential, Premium order */}
                   {[...animationPackages]
+                    .filter((option) => {
+                      // Filter out the Essential package
+                      const title = getDisplayTitle(option)
+                      return title !== "Essential"
+                    })
                     .sort((a, b) => {
-                      // Order: Starter (1), Essential (2), Premium (3)
-                      const order = { Starter: 1, Essential: 2, Premium: 3 }
+                      // Order: Starter (1), Premium (2)
+                      const order = { Starter: 1, Premium: 2 }
                       const aType = getDisplayTitle(a)
                       const bType = getDisplayTitle(b)
                       return (order[aType as keyof typeof order] || 99) - (order[bType as keyof typeof order] || 99)
@@ -490,7 +497,10 @@ export default function SignaturePricingCalculator({
                           {displayTitle === "Starter" && (
                             <AnimationExamples
                               examples={[
-                                { src: "/animations/examples/starter-flow.gif", alt: "Animated flow" },
+                                {
+                                  src: "https://imagedelivery.net/nAvfNlDyCTDMbgRwQ09UKA/d4d68160-ef93-444e-6d59-509ba10ae500/150x150px",
+                                  alt: "Animated flow",
+                                },
                                 { src: "/animations/examples/starter-spin.gif", alt: "Animated spin" },
                                 { src: "/animations/examples/starter-pulse-spin.gif", alt: "Animated pulse spin" },
                               ]}
@@ -508,8 +518,11 @@ export default function SignaturePricingCalculator({
                           {displayTitle === "Premium" && (
                             <AnimationExamples
                               examples={[
-                                { src: "/animations/examples/premium-alter.gif", alt: "Animated Alter logo" },
-                                { src: "/animations/examples/premium-melalogic.gif", alt: "Animated Melalogic logo" },
+                                { src: "/animations/examples/essential-slip.gif", alt: "Animated Slip logo" },
+                                {
+                                  src: "https://imagedelivery.net/nAvfNlDyCTDMbgRwQ09UKA/58bd7767-df02-4d72-e907-13d236d4ce00/150x150px",
+                                  alt: "Animated Melalogic logo",
+                                },
                                 { src: "/animations/examples/premium-playpad.gif", alt: "Animated Playpad logo" },
                               ]}
                             />
@@ -526,7 +539,7 @@ export default function SignaturePricingCalculator({
               {/* User Count */}
               <div className="bg-seasalt p-6 rounded-xl">
                 <h3 className="text-2xl font-bold text-english-violet mb-6 text-center md:text-left">
-                  Select User Count
+                  Step #2: Select User Count
                 </h3>
                 <div className="rounded-xl border p-6 bg-white shadow-md">
                   <div className="flex flex-col">
@@ -586,28 +599,35 @@ export default function SignaturePricingCalculator({
               </div>
 
               {/* Total Price Display - Smaller version */}
-              <div className="bg-gradient-to-r from-periwinkle to-misty-rose p-6 rounded-xl shadow-md flex flex-col justify-center">
+              <div
+                className={cn(
+                  "p-6 rounded-xl shadow-md flex flex-col justify-center transition-all duration-300",
+                  selectedAnimation
+                    ? "bg-gradient-to-r from-periwinkle to-misty-rose"
+                    : "bg-gradient-to-r from-periwinkle/30 to-misty-rose/30 grayscale-[50%]",
+                )}
+              >
                 <span className="text-4x1 text-english-violet/80 block mb-1">Your Total</span>
                 {!selectedAnimation ? (
-                  <h3 className="text-4xl font-bold text-english-violet">Select a Package</h3>
+                  <h2 className="text-4xl font-bold text-english-violet/70">Select a Package to Continue...</h2>
                 ) : isCustomPricing ? (
-                  <h3 className="text-4xl font-bold text-english-violet">Custom Quote</h3>
+                  <h2 className="text-4xl font-bold text-english-violet">Custom Quote</h2>
                 ) : (
                   <>
-                    <h3 className="text-4xl font-bold text-english-violet mb-3 transform scale-110 p-4">
+                    <h2 className="text-4xl font-bold text-english-violet mb-2 transform scale-110 px-4 pb-2">
                       ${totalPrice}
-                    </h3>
+                    </h2>
                     <div className="inline-block bg-black/10 rounded-full px-6 py-2 mb-3">
                       <span className="font-medium text-english-violet">
                         50% Deposit: ${Math.round(totalPrice / 2)} today
                       </span>
                     </div>
-                    <p className="text-english-violet/80 mb-4">
+                    <p className="text-english-violet/80 mb-2">
                       Remaining 50% will be auto-charged in 20 days or upon project completion.
                     </p>
                   </>
                 )}
-                <p className="text-english-violet/70">
+                <p className="text-english-violet/70 py-2">
                   All packages include installation and 2 rounds of revision. If additional revisions are needed, we'll
                   provide a personalized quote.
                 </p>

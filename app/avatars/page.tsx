@@ -120,7 +120,7 @@ export default function AvatarsPage() {
               <span className="inline-flex items-center px-2 py-1 rounded-full bg-red-100 text-red-700 text-xs mr-2">
                 Note
               </span>
-              Currently optimized for Gmail (other email clinets will display static brand logo).
+              Currently optimized for Gmail (other email clinets will display brand logo image).
             </p>
           </div>
         }

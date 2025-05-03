@@ -17,12 +17,12 @@ export default function AnimationExamples({ examples, className }: AnimationExam
       <p className="text-sm font-medium text-english-violet mb-2">Example animations:</p>
       <div className="flex flex-wrap gap-3 justify-left">
         {examples.map((example, index) => (
-          <div key={index} className="w-14 h-14 rounded-full overflow-hidden border border-gray-200 shadow-sm relative">
+          <div key={index} className="w-20 h-20 rounded-full overflow-hidden border border-gray-200 shadow-sm relative">
             <Image
               src={example.src || "/placeholder.svg"}
               alt={example.alt}
-              width={40}
-              height={40}
+              width={60}
+              height={60}
               className="w-full h-full object-cover absolute inset-0"
               unoptimized // Important for GIFs to animate
             />
@@ -32,3 +32,7 @@ export default function AnimationExamples({ examples, className }: AnimationExam
     </div>
   )
 }
+
+// This component receives the examples as props, but doesn't define the actual image paths.
+// The Image component renders each example using:
+// <Image src={example.src || "/placeholder.svg"} ... />

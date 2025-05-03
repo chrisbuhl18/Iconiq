@@ -16,6 +16,8 @@
  * - 1.2.0: Updated display title logic to use product ID/handle instead of price ranges
  */
 
+// Note: Business model updated to only offer Starter and Premium packages (Essential package hidden)
+
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -178,8 +180,8 @@ export default function AvatarPricingCalculator({
     if (!products) return
 
     try {
-      // Format products for the calculator with fixed titles
-      const productTitles = ["Starter", "Essential", "Premium"]
+      // Format products for the calculator with fixed titles (Essential package hidden)
+      const productTitles = ["Starter", "Premium"]
       const formattedPackages = products!.map((product, index) => {
         // Get the base price from the first variant
         const basePrice = product.variants.length > 0 ? Number.parseFloat(product.variants[0].price) : 0
@@ -333,12 +335,16 @@ export default function AvatarPricingCalculator({
           <div className="bg-seasalt p-8 rounded-xl">
             <h3 className="text-2xl font-bold text-english-violet mb-6 text-center">Animation Package</h3>
             <RadioGroup value={selectedAnimation} onValueChange={setSelectedAnimation} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
                 {/* Sort and map the packages to ensure Starter, Essential, Premium order */}
                 {[...animationPackages]
+                  .filter((option) => {
+                    const displayTitle = getDisplayTitle(option)
+                    return displayTitle !== "Essential" // Filter out Essential package
+                  })
                   .sort((a, b) => {
-                    // Order: Starter (1), Essential (2), Premium (3)
-                    const order = { Starter: 1, Essential: 2, Premium: 3 }
+                    // Order: Starter (1), Premium (2)
+                    const order = { Starter: 1, Premium: 2 }
                     const aType = getDisplayTitle(a)
                     const bType = getDisplayTitle(b)
                     return (order[aType as keyof typeof order] || 99) - (order[bType as keyof typeof order] || 99)
@@ -371,7 +377,10 @@ export default function AvatarPricingCalculator({
                         {displayTitle === "Starter" && (
                           <AnimationExamples
                             examples={[
-                              { src: "/animations/examples/starter-flow.gif", alt: "Animated flow" },
+                              {
+                                src: "https://imagedelivery.net/nAvfNlDyCTDMbgRwQ09UKA/d4d68160-ef93-444e-6d59-509ba10ae500/150x150px",
+                                alt: "Animated flow",
+                              },
                               { src: "/animations/examples/starter-spin.gif", alt: "Animated spin" },
                               { src: "/animations/examples/starter-pulse-spin.gif", alt: "Animated pulse spin" },
                             ]}
@@ -389,8 +398,10 @@ export default function AvatarPricingCalculator({
                         {displayTitle === "Premium" && (
                           <AnimationExamples
                             examples={[
-                              { src: "/animations/examples/premium-alter.gif", alt: "Animated Alter logo" },
-                              { src: "/animations/examples/premium-melalogic.gif", alt: "Animated Melalogic logo" },
+                              { src: "/animations/examples/essential-slip.gif", alt: "Animated Alter logo" },
+                              {
+                                src: "https://imagedelivery.net/nAvfNlDyCTDMbgRwQ09UKA/58bd7767-df02-4d72-e907-13d236d4ce00/150x150px",
+                              },
                               { src: "/animations/examples/premium-playpad.gif", alt: "Animated Playpad logo" },
                             ]}
                           />
@@ -406,7 +417,9 @@ export default function AvatarPricingCalculator({
           <div className="bg-gradient-to-r from-periwinkle to-misty-rose p-8 rounded-xl my-12 text-center shadow-md">
             <span className="text-lg text-english-violet/80 block mb-2">Your Total</span>
             {!selectedAnimation ? (
-              <h3 className="text-5xl font-bold text-english-violet">Select a Package</h3>
+              <h3 className="text-5xl font-bold text-english-violet/70 px-4 py-1 mb-2">
+                Select a Package to Continue...
+              </h3>
             ) : (
               <>
                 <h3 className="text-5xl font-bold text-english-violet mb-3">${totalPrice}</h3>
@@ -415,12 +428,12 @@ export default function AvatarPricingCalculator({
                     50% Deposit: ${Math.round(totalPrice / 2)} today
                   </span>
                 </div>
-                <p className="text-english-violet/80 mb-6">
+                <p className="text-english-violet/80 mb-4">
                   Remaining 50% will be auto-charged in 20 days or upon project completion.
                 </p>
               </>
             )}
-            <p className="text-english-violet/70">
+            <p className="text-english-violet/70 py-0">
               All packages include installation and 2 rounds of revision. If additional revisions are needed, we'll
               provide a personalized quote.
             </p>
