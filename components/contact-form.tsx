@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect, useRef } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -24,80 +24,7 @@ export default function ContactForm() {
     message: "",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [scriptLoaded, setScriptLoaded] = useState(false)
   const { toast } = useToast()
-  const aiContainerRef = useRef<HTMLDivElement>(null)
-
-  // Handle the ElevenLabs widget initialization
-  useEffect(() => {
-    if (!scriptLoaded) return
-
-    // Check if the widget already exists to avoid duplicates
-    const existingWidget = document.querySelector("elevenlabs-convai")
-    if (existingWidget) {
-      // Move the existing widget to our container
-      if (aiContainerRef.current) {
-        // Remove any existing content
-        while (aiContainerRef.current.firstChild) {
-          aiContainerRef.current.removeChild(aiContainerRef.current.firstChild)
-        }
-
-        // Move the widget to our container
-        aiContainerRef.current.appendChild(existingWidget)
-
-        // Apply custom styling to the widget
-        existingWidget.classList.add("embedded-widget")
-
-        // Hide the floating button if it exists
-        const floatingButton = document.querySelector(".convai-toggle-button")
-        if (floatingButton) {
-          floatingButton.remove()
-        }
-      }
-    } else {
-      // Create a new widget
-      const widget = document.createElement("elevenlabs-convai")
-      widget.setAttribute("agent-id", "BE6kueB9nSdDyR6AhH1y")
-      widget.setAttribute("variant", "expanded")
-      widget.classList.add("embedded-widget")
-
-      if (aiContainerRef.current) {
-        aiContainerRef.current.appendChild(widget)
-      }
-    }
-
-    // Add custom styling
-    const style = document.createElement("style")
-    style.textContent = `
-      .embedded-widget {
-        position: static !important;
-        inset: auto !important;
-        width: 100% !important;
-        height: 100% !important;
-        transform: none !important;
-        max-width: 100% !important;
-        max-height: 100% !important;
-        margin: 0 !important;
-        border-radius: 8px !important;
-        box-shadow: none !important;
-      }
-      
-      .convai-toggle-button {
-        display: none !important;
-      }
-      
-      .convai-widget-container {
-        position: static !important;
-        width: 100% !important;
-        height: 100% !important;
-        max-width: 100% !important;
-        max-height: 100% !important;
-        transform: none !important;
-        margin: 0 !important;
-      }
-    `
-    document.head.appendChild(style)
-  }, [scriptLoaded])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -261,32 +188,45 @@ export default function ContactForm() {
             </form>
           </TabsContent>
 
-          <TabsContent value="ai" className="min-h-[500px]">
+          <TabsContent value="ai" className="min-h-[300px]">
             <div className="w-full">
               <div className="mb-4 text-center">
-                <p className="text-gray-700">
+                <p className="text-gray-900">
                   Chat with our AI assistant to help you with your inquiry. It will collect the same information as the
                   form in a conversational way.
                 </p>
               </div>
 
-              <div
-                ref={aiContainerRef}
-                className="w-full h-[500px] border rounded-lg overflow-hidden bg-white flex items-center justify-center"
-              >
-                <p className="text-gray-500">Loading AI assistant...</p>
+              <div className="w-full h-300px flex items-center justify-center">
+                <p className="text-gray-500">
+                  The AI assistant will appear as a chat widget in the bottom right corner of the page.
+                  <br />
+                  <br />
+                </p>
               </div>
             </div>
           </TabsContent>
         </Tabs>
       </CardContent>
 
-      {/* Load the ElevenLabs script */}
+      {/* Load the ElevenLabs script and widget */}
       <Script
         id="elevenlabs-script"
-        src="https://elevenlabs.io/convai-widget/index.js"
         strategy="afterInteractive"
-        onLoad={() => setScriptLoaded(true)}
+        dangerouslySetInnerHTML={{
+          __html: `
+            // Create the widget element
+            const widget = document.createElement('elevenlabs-convai');
+            widget.setAttribute('agent-id', 'BE6kueB9nSdDyR6AhH1y');
+            document.body.appendChild(widget);
+            
+            // Load the script
+            const script = document.createElement('script');
+            script.src = 'https://elevenlabs.io/convai-widget/index.js';
+            script.async = true;
+            document.body.appendChild(script);
+          `,
+        }}
       />
     </Card>
   )

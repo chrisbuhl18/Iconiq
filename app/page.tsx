@@ -58,7 +58,9 @@ export default function Home() {
 
             {/* Desktop-only right side elements */}
             <div className="hidden md:flex items-center justify-end space-x-4">
-              <Button className="bg-black hover:bg-black/90 text-white rounded-full px-6">Contact</Button>
+              <Link href="/contact">
+                <Button className="bg-black hover:bg-black/90 text-white rounded-full px-6">Contact</Button>
+              </Link>
             </div>
           </div>
         </nav>
@@ -733,12 +735,12 @@ export default function Home() {
                   Get Started Now <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
-              <Link href="#contact">
+              <Link href="/contact">
                 <Button
                   variant="outline"
                   className="border-english-violet text-english-violet rounded-full px-8 py-6 text-lg"
                 >
-                  Contact Sales
+                  Contact Us
                 </Button>
               </Link>
             </div>

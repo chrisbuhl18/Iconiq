@@ -37,7 +37,7 @@ export default function Hero({ title, subtitle, bgColor, textColor, buttonText, 
                     {buttonText} <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </a>
-                <a href="#contact">
+                <a href="/contact">
                   <Button
                     variant="outline"
                     className="border-english-violet text-english-violet rounded-full px-8 py-6 text-lg"
@@ -87,7 +87,7 @@ export default function Hero({ title, subtitle, bgColor, textColor, buttonText, 
                     {buttonText} <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </a>
-                <a href="#contact">
+                <a href="/contact">
                   <Button
                     variant="outline"
                     className="border-english-violet text-english-violet rounded-full px-6 py-4 text-base"
