@@ -1,9 +1,9 @@
 import ContactForm from "@/components/contact-form"
 import BookDemo from "@/components/book-demo"
+import type { Metadata } from "next"
 import Logo from "@/components/logo"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import type { Metadata } from "next"
 
 export const metadata: Metadata = {
   title: "Contact Us | Lumio",
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-periwinkle/30 to-misty-rose/30">
-      {/* Navigation */}
+      {/* Navigation - copied from home page */}
       <nav className="container mx-auto px-4 py-4 relative z-10">
         <div className="flex items-center justify-between max-w-full">
           {/* Logo - always on the left */}
@@ -57,7 +57,7 @@ export default function ContactPage() {
           {/* Desktop-only right side elements */}
           <div className="hidden md:flex items-center justify-end space-x-4">
             <Link href="/contact">
-              <Button className="bg-black hover:bg-black/90 text-white rounded-full px-6 bg-opacity-80">Contact</Button>
+              <Button className="bg-black hover:bg-black/90 text-white rounded-full px-6">Contact</Button>
             </Link>
           </div>
         </div>
