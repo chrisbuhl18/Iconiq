@@ -7,6 +7,7 @@ import FAQ from "@/components/faq"
 import Footer from "@/components/footer"
 import SignatureMockup from "@/components/signature-mockup"
 import type { Metadata } from "next"
+import ConvaiWidget from "@/components/convai-widget"
 
 // Skip server-side data fetching during build
 export const dynamic = "force-dynamic"
@@ -114,6 +115,7 @@ export default function SignaturesPage() {
       <FAQ title="Frequently Asked Questions" faqs={signatureFaqs} />
 
       <Footer />
+      <ConvaiWidget />
     </ProductLayout>
   )
 }

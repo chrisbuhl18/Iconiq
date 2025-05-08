@@ -8,6 +8,7 @@ import Footer from "@/components/footer"
 import AvatarMockup from "@/components/avatar-mockup"
 import GmailOnlyBadge from "@/components/gmail-only-badge"
 import type { Metadata } from "next"
+import ConvaiWidget from "@/components/convai-widget"
 
 // Skip server-side data fetching during build
 export const dynamic = "force-dynamic"
@@ -130,6 +131,7 @@ export default function AvatarsPage() {
       <FAQ title="Frequently Asked Questions" faqs={avatarFaqs} />
 
       <Footer />
+      <ConvaiWidget />
     </ProductLayout>
   )
 }

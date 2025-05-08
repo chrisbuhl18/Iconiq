@@ -4,6 +4,7 @@ import type { Metadata } from "next"
 import Logo from "@/components/logo"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import ConvaiWidget from "@/components/convai-widget"
 
 export const metadata: Metadata = {
   title: "Contact Us | Lumio",
@@ -90,6 +91,9 @@ export default function ContactPage() {
           </div>
         </div>
       </div>
+
+      {/* Add the Convai Widget */}
+      <ConvaiWidget />
     </div>
   )
 }

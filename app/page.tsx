@@ -5,6 +5,7 @@ import { ArrowRight } from "lucide-react"
 import AnimatedAvatar from "@/components/animated-avatar"
 import SignatureHeadshot from "@/components/signature-headshot"
 import { Mail, Phone } from "lucide-react"
+import ConvaiWidget from "@/components/convai-widget"
 
 export default function Home() {
   return (
@@ -747,6 +748,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Add ConvaiWidget */}
+      <ConvaiWidget />
     </div>
   )
 }
