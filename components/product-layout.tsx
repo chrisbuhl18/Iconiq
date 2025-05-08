@@ -83,7 +83,7 @@ export default function ProductLayout({
 
             {/* Desktop-only right side elements */}
             <div className="hidden md:flex items-center space-x-4">
-              <Link href="#contact">
+              <Link href="/contact">
                 <Button className="bg-black hover:bg-black/90 text-white rounded-full px-6">Contact</Button>
               </Link>
             </div>

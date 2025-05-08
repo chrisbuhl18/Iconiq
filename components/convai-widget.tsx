@@ -1,52 +1,30 @@
 "use client"
 
-import Script from "next/script"
-import { useState, useEffect } from "react"
+import { useEffect } from "react"
 
 export default function ConvaiWidget() {
-  const [scriptLoaded, setScriptLoaded] = useState(false)
-
-  // Handle script load event
-  const handleScriptLoad = () => {
-    console.log("ElevenLabs Convai script loaded successfully")
-    setScriptLoaded(true)
-  }
-
-  // Add the custom element after the script has loaded
   useEffect(() => {
-    if (scriptLoaded) {
-      try {
-        // Check if the element already exists
-        if (!document.querySelector("elevenlabs-convai")) {
-          // Create the custom element
-          const convaiElement = document.createElement("div")
-          convaiElement.innerHTML = '<elevenlabs-convai agent-id="exvULGYRnWVefcFtyO6w"></elevenlabs-convai>'
-          document.body.appendChild(convaiElement)
+    // Create and append the script element
+    const script = document.createElement("script")
+    script.src = "https://elevenlabs.io/convai-widget/index.js"
+    script.async = true
+    script.type = "text/javascript"
+    document.body.appendChild(script)
 
-          console.log("ElevenLabs Convai element added to the page")
+    // Create and append the custom element
+    const convaiElement = document.createElement("elevenlabs-convai")
+    convaiElement.setAttribute("agent-id", "exvULGYRnWVefcFtyO6w")
+    document.body.appendChild(convaiElement)
 
-          // Cleanup function
-          return () => {
-            if (document.body.contains(convaiElement)) {
-              document.body.removeChild(convaiElement)
-            }
-          }
-        }
-      } catch (error) {
-        console.error("Error adding ElevenLabs Convai element:", error)
+    // Cleanup function to remove elements when component unmounts
+    return () => {
+      document.body.removeChild(script)
+      if (document.body.contains(convaiElement)) {
+        document.body.removeChild(convaiElement)
       }
     }
-  }, [scriptLoaded])
+  }, [])
 
-  return (
-    <>
-      <Script
-        src="https://elevenlabs.io/convai-widget/index.js"
-        strategy="afterInteractive"
-        onLoad={handleScriptLoad}
-        onError={(e) => console.error("Script failed to load", e)}
-        id="elevenlabs-convai-script"
-      />
-    </>
-  )
+  // This component doesn't render anything visible
+  return null
 }
