@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -24,56 +24,80 @@ export default function ContactForm() {
     message: "",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [activeTab, setActiveTab] = useState("form")
+  const [scriptLoaded, setScriptLoaded] = useState(false)
   const { toast } = useToast()
+  const aiContainerRef = useRef<HTMLDivElement>(null)
 
-  // Effect to handle the Convai widget
+  // Handle the ElevenLabs widget initialization
   useEffect(() => {
-    // Function to handle the widget when tab changes
-    const handleWidgetVisibility = () => {
-      // Find the widget element that gets injected into the DOM
-      const widgetElement = document.querySelector(".convai-widget-container") as HTMLElement
+    if (!scriptLoaded) return
 
-      if (widgetElement) {
-        if (activeTab === "ai") {
-          // Move the widget into our container
-          const container = document.getElementById("ai-assistant-container")
-          if (container) {
-            // Modify the widget styles to fit in our container
-            widgetElement.style.position = "relative"
-            widgetElement.style.bottom = "0"
-            widgetElement.style.right = "0"
-            widgetElement.style.width = "100%"
-            widgetElement.style.height = "500px"
-            widgetElement.style.maxHeight = "none"
+    // Check if the widget already exists to avoid duplicates
+    const existingWidget = document.querySelector("elevenlabs-convai")
+    if (existingWidget) {
+      // Move the existing widget to our container
+      if (aiContainerRef.current) {
+        // Remove any existing content
+        while (aiContainerRef.current.firstChild) {
+          aiContainerRef.current.removeChild(aiContainerRef.current.firstChild)
+        }
 
-            // Move the widget into our container
-            container.appendChild(widgetElement)
+        // Move the widget to our container
+        aiContainerRef.current.appendChild(existingWidget)
 
-            // Make it visible
-            widgetElement.style.display = "block"
-          }
-        } else {
-          // Hide the widget when not on the AI tab
-          widgetElement.style.display = "none"
+        // Apply custom styling to the widget
+        existingWidget.classList.add("embedded-widget")
+
+        // Hide the floating button if it exists
+        const floatingButton = document.querySelector(".convai-toggle-button")
+        if (floatingButton) {
+          floatingButton.remove()
         }
       }
-    }
+    } else {
+      // Create a new widget
+      const widget = document.createElement("elevenlabs-convai")
+      widget.setAttribute("agent-id", "BE6kueB9nSdDyR6AhH1y")
+      widget.setAttribute("variant", "expanded")
+      widget.classList.add("embedded-widget")
 
-    // Initial check
-    const checkForWidget = setInterval(() => {
-      const widgetElement = document.querySelector(".convai-widget-container")
-      if (widgetElement) {
-        clearInterval(checkForWidget)
-        handleWidgetVisibility()
+      if (aiContainerRef.current) {
+        aiContainerRef.current.appendChild(widget)
       }
-    }, 500)
-
-    // Cleanup
-    return () => {
-      clearInterval(checkForWidget)
     }
-  }, [activeTab])
+
+    // Add custom styling
+    const style = document.createElement("style")
+    style.textContent = `
+      .embedded-widget {
+        position: static !important;
+        inset: auto !important;
+        width: 100% !important;
+        height: 100% !important;
+        transform: none !important;
+        max-width: 100% !important;
+        max-height: 100% !important;
+        margin: 0 !important;
+        border-radius: 8px !important;
+        box-shadow: none !important;
+      }
+      
+      .convai-toggle-button {
+        display: none !important;
+      }
+      
+      .convai-widget-container {
+        position: static !important;
+        width: 100% !important;
+        height: 100% !important;
+        max-width: 100% !important;
+        max-height: 100% !important;
+        transform: none !important;
+        margin: 0 !important;
+      }
+    `
+    document.head.appendChild(style)
+  }, [scriptLoaded])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -82,10 +106,6 @@ export default function ContactForm() {
 
   const handleSelectChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const handleTabChange = (value: string) => {
-    setActiveTab(value)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -131,7 +151,7 @@ export default function ContactForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="form" className="w-full" onValueChange={handleTabChange}>
+        <Tabs defaultValue="form" className="w-full">
           <TabsList className="grid grid-cols-2 mb-6">
             <TabsTrigger value="form">Traditional Form</TabsTrigger>
             <TabsTrigger value="ai">AI Assistant</TabsTrigger>
@@ -250,42 +270,23 @@ export default function ContactForm() {
                 </p>
               </div>
 
-              {/* Hidden element that will be used to initialize the widget */}
-              <div className="hidden">
-                <elevenlabs-convai agent-id="BE6kueB9nSdDyR6AhH1y"></elevenlabs-convai>
-              </div>
-
-              {/* Container where we'll move the widget */}
               <div
-                id="ai-assistant-container"
-                className="w-full h-[500px] border rounded-lg overflow-hidden bg-white"
-              ></div>
+                ref={aiContainerRef}
+                className="w-full h-[500px] border rounded-lg overflow-hidden bg-white flex items-center justify-center"
+              >
+                <p className="text-gray-500">Loading AI assistant...</p>
+              </div>
             </div>
           </TabsContent>
         </Tabs>
       </CardContent>
 
-      {/* Load the Convai script */}
+      {/* Load the ElevenLabs script */}
       <Script
+        id="elevenlabs-script"
         src="https://elevenlabs.io/convai-widget/index.js"
         strategy="afterInteractive"
-        onLoad={() => {
-          // Force a check for the widget after script loads
-          const widgetElement = document.querySelector(".convai-widget-container") as HTMLElement
-          if (widgetElement && activeTab === "ai") {
-            const container = document.getElementById("ai-assistant-container")
-            if (container) {
-              widgetElement.style.position = "relative"
-              widgetElement.style.bottom = "0"
-              widgetElement.style.right = "0"
-              widgetElement.style.width = "100%"
-              widgetElement.style.height = "500px"
-              widgetElement.style.maxHeight = "none"
-              container.appendChild(widgetElement)
-              widgetElement.style.display = "block"
-            }
-          }
-        }}
+        onLoad={() => setScriptLoaded(true)}
       />
     </Card>
   )

@@ -5,7 +5,7 @@ import Link from "next/link"
 
 export default function BookDemo() {
   // Replace with your actual Calendly link
-  const calendlyLink = "https://calendly.com/lumio/demo"
+  const calendlyLink = "https://calendly.com/chris-golumio/30min"
 
   return (
     <Card className="shadow-md h-full">
